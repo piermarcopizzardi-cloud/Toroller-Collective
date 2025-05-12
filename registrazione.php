@@ -1,168 +1,489 @@
 <?php
-    session_start();
-    if(isset($_SESSION["username"])){
-        header("Location: home.php");
-        exit;
+// Start session if not already started
+session_start();
+
+// Check if user is already logged in
+if (isset($_SESSION['user_id'])) {
+    // Redirect to index page
+    header("Location: index.php");
+    exit;
+}
+
+// Initialize variables
+$name = "";
+$email = "";
+$error = "";
+$success = "";
+
+// Process form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get form data
+    $name = trim($_POST["name"]);
+    $email = trim($_POST["email"]);
+    $password = $_POST["password"];
+    $confirm_password = $_POST["confirm_password"];
+    
+    // Basic validation
+    if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
+        $error = "Tutti i campi sono obbligatori.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Formato email non valido.";
+    } elseif (strlen($password) < 8) {
+        $error = "La password deve contenere almeno 8 caratteri.";
+    } elseif ($password !== $confirm_password) {
+        $error = "Le password non corrispondono.";
+    } else {
+        // Database connection
+        $conn = new mysqli("localhost", "username", "password", "toroller"); // Replace with your actual database credentials
+        
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        
+        // Check if email already exists
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $error = "Email già registrata. Prova con un'altra email.";
+        } else {
+            // Hash password
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            
+            // Prepare SQL statement to insert new user
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $name, $email, $hashed_password);
+            
+            // Execute the statement
+            if ($stmt->execute()) {
+                $success = "Registrazione completata con successo! Ora puoi effettuare il login.";
+                // Clear form data after successful registration
+                $name = "";
+                $email = "";
+            } else {
+                $error = "Errore durante la registrazione. Riprova più tardi.";
+            }
+        }
+        
+        $stmt->close();
+        $conn->close();
     }
+}
 ?>
-<!-- <html>
-    <body>
-        <h1>Non sei ancora registrato, fallo ora</h1>
-        <form action = "confirm_register.php" method = "POST"> 
-            Username: <input type = "text" name = "username" placeholder="username"> 
-            <br><br>
-            Email: <input type = "text" name = "email" placeholder="email">
-            <br><br>
-            Password: <input type ="password" name = "password" placeholder="password">
-            <br><br>
-            Conferma password: <input type ="password" name = "password_conferma" placeholder="conferma password"/>
-            <br><br>
-            Data di nascita: <input type = "date" name = "data_nascita"/>
-            <br><br>
-            Ruolo: <input type="radio" id="amm" name="amministratore" value="1"/>
-            <label for="amm">Amministratore</label>
-            <input type="radio" id="norm" name="amministratore" value="0"/>
-            <label for="norm">Utente normale</label>
-            <br><br>
-            <input type = "submit" value = "Registrati"/>
-        </form>
-        <a href="index.php"> Oppure accedi </a>
-    </body>
-</html> -->
 
-
-
-<div style="width: 100%; height: 100%; position: relative; background: white; overflow: hidden">
-    <div style="width: 1440px; height: 934px; left: 0px; top: 0px; position: absolute; background: white"></div>
-    <img style="width: 408.98px; height: 437.57px; left: 2.28px; top: 526.34px; position: absolute; transform: rotate(-22deg); transform-origin: top left" src="https://placehold.co/409x438" />
-    <img style="width: 272.06px; height: 382.96px; left: 503px; top: 77.26px; position: absolute; transform: rotate(-2deg); transform-origin: top left" src="https://placehold.co/272x383" />
-    <div style="width: 546.98px; height: 132px; left: 110px; top: 280px; position: absolute; color: #04CD00; font-size: 56px; font-family: DM Sans; font-weight: 700; line-height: 66px; word-wrap: break-word">Resta connesso alle tue passioni</div>
-    <div style="width: 351px; height: 26px; left: 110px; top: 628px; position: absolute"></div>
-    <div style="left: 110px; top: 490px; position: absolute; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-        <div style="justify-content: flex-start; align-items: center; gap: 14px; display: flex">
-            <div style="width: 26px; height: 26px; position: relative; overflow: hidden">
-                <div style="width: 26px; height: 26px; left: 0px; top: 0px; position: absolute; background: #04CD00"></div>
-                <div style="width: 11.77px; height: 8.40px; left: 7.12px; top: 8.80px; position: absolute; outline: 2px white solid; outline-offset: -1px"></div>
-            </div>
-            <div style="color: #04CD00; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Enim nunc faucibus a pellentesque sit amet.</div>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrazione - TorollerCollective</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            width: 100%;
+            min-height: 100vh;
+            background-color: #ffffff;
+        }
+        
+        .header {
+            width: 100%;
+            height: 118px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 110px;
+            padding-right: 110px;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-text {
+            color: #04CD00;
+            font-size: 30px;
+            font-weight: 800;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 33px;
+        }
+        
+        .nav-link {
+            color: #BDD3C6;
+            font-size: 18px;
+        }
+        
+        .nav-link-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .login-btn {
+            color: #BDD3C6;
+            font-size: 16px;
+            padding: 18px 24px;
+            border: 1px solid #7FE47E;
+            border-radius: 30px;
+            text-decoration: none;
+        }
+        
+        .get-started-btn {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 18px 24px;
+            background-color: #04CD00;
+            border-radius: 30px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .hamburger-menu {
+            display: none;
+        }
+        
+        .main-content {
+            display: flex;
+            justify-content: space-between;
+            padding-left: 110px;
+            padding-right: 110px;
+            padding-top: 100px;
+            padding-bottom: 100px;
+        }
+        
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: 216px;
+        }
+        
+        .main-heading {
+            color: #04CD00;
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 66px;
+        }
+        
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .feature-text {
+            color: #04CD00;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .registration-form-container {
+            width: 506px;
+            background-color: #ffffff;
+            border-radius: 30px;
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+            padding: 40px;
+        }
+        
+        .registration-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .form-label {
+            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background-color: #04CD00;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .images-container {
+            position: relative;
+        }
+        
+        .image-left {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 409px;
+            height: 438px;
+            transform: rotate(-21.725deg);
+        }
+        
+        .image-right {
+            position: absolute;
+            top: 68px;
+            right: 503px;
+            width: 272px;
+            height: 383px;
+            transform: rotate(-1.952deg);
+        }
+        
+        .error-message {
+            color: #ff0000;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: #04CD00;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .login-link a {
+            color: #04CD00;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 991px) {
+            .header {
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+            
+            .main-content {
+                padding-left: 40px;
+                padding-right: 40px;
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .left-section {
+                gap: 40px;
+            }
+            
+            .main-heading {
+                font-size: 40px;
+                line-height: 48px;
+            }
+            
+            .registration-form-container {
+                width: 100%;
+            }
+            
+            .image-left, .image-right {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .header {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .hamburger-menu {
+                display: block;
+                color: #04CD00;
+            }
+            
+            .main-content {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .main-heading {
+                font-size: 32px;
+                line-height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="assets/logo.png" alt="TorollerCollective Logo" width="61" height="80">
+            <div class="logo-text">TorollerCollective</div>
         </div>
-    </div>
-    <div style="left: 110px; top: 532px; position: absolute; justify-content: flex-start; align-items: center; gap: 14px; display: inline-flex">
-        <div style="width: 26px; height: 26px; position: relative; overflow: hidden">
-            <div style="width: 26px; height: 26px; left: 0px; top: 0px; position: absolute; background: #04CD00"></div>
-            <div style="width: 11.77px; height: 8.40px; left: 7.12px; top: 8.80px; position: absolute; background: #04CD00; outline: 2px white solid; outline-offset: -1px"></div>
-        </div>
-        <div style="color: #04CD00; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Dolor sit amet consectetur adipisci.</div>
-    </div>
-    <div style="left: 108px; top: 574px; position: absolute; justify-content: flex-start; align-items: center; gap: 14px; display: inline-flex">
-        <div style="width: 26px; height: 26px; position: relative; overflow: hidden">
-            <div style="width: 26px; height: 26px; left: 0px; top: 0px; position: absolute; background: #04CD00"></div>
-            <div style="width: 11.77px; height: 8.40px; left: 7.12px; top: 8.80px; position: absolute; background: #04CD00; outline: 2px white solid; outline-offset: -1px"></div>
-        </div>
-        <div style="color: #04CD00; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Sed lectus vestibulum mattis ullamcorper dolor.</div>
-    </div>
-    <div style="padding-left: 40px; padding-right: 40px; padding-top: 72px; padding-bottom: 72px; left: 741px; top: 209px; position: absolute; background: #EEFEF0; box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25); border-radius: 30px; flex-direction: column; justify-content: flex-start; align-items: center; display: inline-flex">
-        <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 32px; display: flex">
-            <div style="justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex">
-                <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 32px; display: inline-flex">
-                    <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; display: flex">
-                        <div style="color: #0F0F0F; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">First name</div>
-                        <div style="width: 246px; height: 72px; position: relative">
-                            <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute">
-                                <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 50px"></div>
-                                <div style="left: 24px; top: 27px; position: absolute; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                    <div style="color: #92D2AD; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">First name</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; display: flex">
-                        <div style="color: #0F0F0F; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Email</div>
-                        <div style="width: 246px; height: 72px; position: relative">
-                            <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute">
-                                <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 50px"></div>
-                                <div style="left: 24px; top: 27px; position: absolute; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                    <div style="color: #92D2AD; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">example@email.com</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; display: flex">
-                        <div style="color: #0F0F0F; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Address</div>
-                        <div style="width: 246px; height: 72px; position: relative">
-                            <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute">
-                                <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 50px"></div>
-                                <div style="left: 24px; top: 27px; position: absolute; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                    <div style="color: #92D2AD; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Es. Via Bologna 18</div>
-                                </div>
-                            </div>
-                        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-links">
+                <a class="nav-link" href="index.php">Home</a>
+                <a class="nav-link" href="community.php">Community</a>
+                <div class="nav-link-with-icon">
+                    <a class="nav-link" href="shop.php">Shop</a>
+                    <div>
+                        <svg width="12" height="12" viewBox="0 0 66 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text fill="#BDD3C6" xml:space="preserve" style="white-space: pre" font-family="DM Sans" font-size="18" letter-spacing="0px"><tspan x="0.475952" y="15.2126">Shop</tspan></text>
+                            <path d="M53.3334 6.15796L59.1667 11.9913L65 6.15796" stroke="#211F54" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
                     </div>
                 </div>
-                <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 32px; display: inline-flex">
-                    <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; display: flex">
-                        <div style="color: #0F0F0F; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Last name</div>
-                        <div style="width: 246px; height: 72px; position: relative">
-                            <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute">
-                                <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 50px"></div>
-                                <div style="left: 24px; top: 27px; position: absolute; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                    <div style="color: #92D2AD; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Last name</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; display: flex">
-                        <div style="color: #0F0F0F; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Phone</div>
-                        <div style="width: 246px; height: 72px; position: relative">
-                            <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute">
-                                <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 50px"></div>
-                                <div style="left: 24px; top: 27px; position: absolute; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                    <div style="color: #92D2AD; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">(414) 804 - 987</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; display: flex">
-                        <div style="color: #0F0F0F; font-size: 18px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Cap</div>
-                        <div style="width: 246px; height: 72px; position: relative">
-                            <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute">
-                                <div style="width: 246px; height: 72px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 50px"></div>
-                                <div style="left: 24px; top: 27px; position: absolute; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                    <div style="color: #92D2AD; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Es. 10198</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="nav-link" href="eventi.php">Eventi</div>
             </div>
-            <div data-color="Default" data-icon-left="False" data-icon-right="False" data-size="Default" style="width: 516px; justify-content: flex-end; align-items: center; display: inline-flex">
-                <div data-size="Default" style="flex: 1 1 0; padding-left: 38px; padding-right: 38px; padding-top: 26px; padding-bottom: 26px; background: #04CD00; border-radius: 50px; justify-content: center; align-items: center; gap: 6px; display: flex">
-                    <div style="text-align: center; color: white; font-size: 16px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Get started</div>
-                </div>
+            
+            <div class="auth-buttons">
+                <a href="login.php" class="login-btn">Login</a>
+                <a href="registrazione.php" class="get-started-btn">Get started</a>
             </div>
+        </div>
+        
+        <div class="hamburger-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
         </div>
     </div>
-    <div style="width: 1440px; height: 118px; left: 0px; top: 0px; position: absolute">
-        <div style="width: 651px; padding-left: 25px; left: 679px; top: 32.07px; position: absolute; justify-content: flex-end; align-items: center; gap: 24px; display: inline-flex">
-            <div style="justify-content: flex-end; align-items: center; gap: 33px; display: flex">
-                <div click="index.php" style="text-align: center; color: #BDD3C6; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Home</div>
-                <div  style="text-align: center; color: #BDD3C6; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Community</div>
-                <div  style="justify-content: flex-start; align-items: center; gap: 10px; display: flex">
-                    <div style="text-align: center; color: #BDD3C6; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Shop</div>
-                    <div style="width: 11.67px; height: 5.83px; outline: 1.40px #211F54 solid; outline-offset: -0.70px"></div>
+    
+    <div class="main-content">
+        <div class="left-section">
+            <div class="main-heading">Unisciti alla nostra community</div>
+            
+            <div class="features">
+                <div class="feature">
+                    <div>
+                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_16_1289)">
+                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
+                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_16_1289">
+                                    <rect width="26" height="26" fill="white"></rect>
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="feature-text">La tua privacy e la nostra priorità</div>
                 </div>
-                <div style="text-align: center; color: #BDD3C6; font-size: 18px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Eventi</div>
-            </div>
-            <div data-icon-left="false" data-icon-right="false" data-size="Small" data-type="Primary" style="padding-left: 24px; padding-right: 24px; padding-top: 18px; padding-bottom: 18px; background: white; border-radius: 30px; outline: 1px #7FE47E solid; outline-offset: -1px; justify-content: flex-end; align-items: center; gap: 8px; display: flex">
-                <div  click="login.php" style="text-align: center; color: #BDD3C6; font-size: 16px; font-family: DM Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">Login</div>
-            </div>
-            <div data-icon-left="false" data-icon-right="false" data-size="Small" data-type="Primary" style="padding-left: 24px; padding-right: 24px; padding-top: 18px; padding-bottom: 18px; background: #04CD00; border-radius: 30px; justify-content: flex-end; align-items: center; gap: 8px; display: flex">
-                <div style="text-align: center; color: white; font-size: 16px; font-family: DM Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">Get started</div>
+                
+                <div class="feature">
+                    <div>
+                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_16_1296)">
+                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
+                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" fill="#04CD00"></path>
+                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_16_1296">
+                                    <rect width="26" height="26" fill="white"></rect>
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="feature-text">utilizziamo sistemi di crittografia nel vostro rispetto</div>
+                </div>
             </div>
         </div>
-        <div style="width: 261.31px; height: 34.35px; left: 110px; top: 41.83px; position: absolute">
-            <img style="width: 61px; height: 80.09px; left: -8px; top: -27.83px; position: absolute" src="https://placehold.co/61x80" />
+        
+        <div class="registration-form-container">
+            <form class="registration-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                <?php if (!empty($error)): ?>
+                    <div class="error-message"><?php echo $error; ?></div>
+                <?php endif; ?>
+                
+                <?php if (!empty($success)): ?>
+                    <div class="success-message"><?php echo $success; ?></div>
+                <?php endif; ?>
+                
+                <div class="form-group">
+                    <label for="name" class="form-label">Nome completo</label>
+                    <input type="text" id="name" name="name" placeholder="Il tuo nome" class="form-input" value="<?php echo htmlspecialchars($name); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo htmlspecialchars($email); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Almeno 8 caratteri" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Conferma Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Conferma la tua password" class="form-input" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Registrati</button>
+                
+                <div class="login-link">
+                    Hai già un account? <a href="login.php">Accedi</a>
+                </div>
+            </form>
         </div>
-        <div style="width: 614px; height: 96.95px; left: 0px; top: 54.03px; position: absolute; text-align: center; color: #04CD00; font-size: 30px; font-family: Inter; font-weight: 800; line-height: 18px; word-wrap: break-word">TorollerCollective</div>
     </div>
-</div>
+    
+    <div class="images-container">
+        <img src="assets/image-left.png" alt="" class="image-left">
+        <img src="assets/image-right.png" alt="" class="image-right">
+    </div>
+</body>
+</html>

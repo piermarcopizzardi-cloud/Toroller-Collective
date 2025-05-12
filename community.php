@@ -590,8 +590,8 @@ if (isset($_GET['logout'])) {
     </div>
     
     <div class="hero-section">
-        <h1 class="hero-title">Bike To School</h1>
-        <p class="hero-subtitle">Unisciti a noi per condividere la tua passione, connetterti con altri appassionati ed educare alla strada.</p>
+        <h1 class="hero-title">Benvenuti nella community di TorollerCollective</h1>
+        <p class="hero-subtitle">Unisciti a noi per condividere la tua passione, connetterti con altri appassionati e scoprire nuove opportunità.</p>
         
         <div class="hero-buttons">
             <?php if (!$isLoggedIn): ?>

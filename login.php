@@ -47,27 +47,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $error = "Utente non trovato. Registrati per continuare.";
                 } else {
                     // Verifica la password
-                    $sql = "SELECT * FROM utente WHERE email = '$email' AND password = '$password'";
-                    $ris = mysqli_query($conn, $sql);
-                    
-                    if (!$ris) {
-                        $error = "Errore durante la verifica delle credenziali: " . mysqli_error($conn);
+                    $user = mysqli_fetch_assoc($ris);
+                    if (password_verify($password, $user['password'])) {
+                        // Login successful
+                        $_SESSION['email'] = $email;
+                        $_SESSION['password'] = $user['password']; // Store hashed password
+                        header("Location: index.php");
+                        exit();
                     } else {
-                        $num_rows = mysqli_num_rows($ris);
-                        if ($num_rows <= 0) {
-                            $error = "Password non corretta.";
-                        } else {
-                            // Login successful
-                            $_SESSION['email'] = $email;
-                            $_SESSION['password'] = $password;
-                            header("Location: index.php");
-                            exit();
-                        }
+                        $error = "Password non corretta.";
                     }
                 }
             }
         }
+        
+        mysqli_close($conn);
     }
+}
+
+// Check for success message from registration
+if (isset($_SESSION['registration_success'])) {
+    $success = "Registrazione completata con successo! Effettua il login.";
+    unset($_SESSION['registration_success']); // Clear the message
 }
 
 // Controlla se l'utente è loggato
@@ -301,6 +302,12 @@ if ($isLoggedIn) {
             text-align: center;
         }
         
+        .success-message {
+            color: #04CD00;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
         @media (max-width: 991px) {
             .header {
                 padding-left: 40px;
@@ -393,7 +400,7 @@ if ($isLoggedIn) {
         
         <div class="nav-menu">
             <div class="nav-links">
-            <a class="nav-link" href="index.php">Home</a>
+                <a class="nav-link" href="index.php">Home</a>
                 <a class="nav-link" href="community.php">Community</a>
                 <div class="nav-link-with-icon">
                     <a class="nav-link" href="shop.php">Shop</a>
@@ -404,7 +411,7 @@ if ($isLoggedIn) {
                         </svg>
                     </div>
                 </div>
-                <div class="nav-link">Eventi</div>
+                <a class="nav-link" href="eventi.php">Eventi</a>
             </div>
             
             <div class="auth-buttons">
@@ -473,6 +480,10 @@ if ($isLoggedIn) {
             <form class="login-form" method="POST" action="">
                 <?php if (!empty($error)): ?>
                     <div class="error-message"><?php echo $error; ?></div>
+                <?php endif; ?>
+                
+                <?php if (!empty($success)): ?>
+                    <div class="success-message"><?php echo $success; ?></div>
                 <?php endif; ?>
                 
                 <div class="form-group">

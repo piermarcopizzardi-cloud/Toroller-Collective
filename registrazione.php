@@ -37,7 +37,9 @@ if ($isLoggedIn) {
 
 // Initialize variables
 $name = "";
+$surname = "";
 $email = "";
+$birthdate = "";
 $error = "";
 $success = "";
 
@@ -45,12 +47,14 @@ $success = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get form data
     $name = trim($_POST["name"]);
+    $surname = trim($_POST["surname"]);
     $email = trim($_POST["email"]);
+    $birthdate = $_POST["birthdate"];
     $password = $_POST["password"];
     $confirm_password = $_POST["confirm_password"];
     
     // Basic validation
-    if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
+    if (empty($name) || empty($surname) || empty($email) || empty($birthdate) || empty($password) || empty($confirm_password)) {
         $error = "Tutti i campi sono obbligatori.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Formato email non valido.";
@@ -60,43 +64,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Le password non corrispondono.";
     } else {
         // Database connection
-        $conn = new mysqli("localhost", "username", "password", "toroller"); // Replace with your actual database credentials
+        $conn = connetti("toroller");
         
         // Check connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-        
-        // Check if email already exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $error = "Email già registrata. Prova con un'altra email.";
+        if (!$conn) {
+            $error = "Errore di connessione al database";
         } else {
-            // Hash password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            // Check if email already exists
+            $email = mysqli_real_escape_string($conn, $email);
+            $query = "SELECT email FROM utente WHERE email = '$email'";
+            $result = mysqli_query($conn, $query);
             
-            // Prepare SQL statement to insert new user
-            $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $name, $email, $hashed_password);
-            
-            // Execute the statement
-            if ($stmt->execute()) {
-                $success = "Registrazione completata con successo! Ora puoi effettuare il login.";
-                // Clear form data after successful registration
-                $name = "";
-                $email = "";
+            if (!$result) {
+                $error = "Errore durante la verifica dell'email: " . mysqli_error($conn);
+            } else if (mysqli_num_rows($result) > 0) {
+                $error = "Email già registrata. Prova con un'altra email.";
             } else {
-                $error = "Errore durante la registrazione. Riprova più tardi.";
+                // Hash password
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $name = mysqli_real_escape_string($conn, $name);
+                $surname = mysqli_real_escape_string($conn, $surname);
+                $birthdate = mysqli_real_escape_string($conn, $birthdate);
+                
+                // Insert new user
+                $query = "INSERT INTO utente (nome, cognome, email, password, data_nascita) VALUES ('$name', '$surname', '$email', '$hashed_password', '$birthdate')";
+                
+                error_log("Query di registrazione: " . $query);
+                
+                if (!mysqli_query($conn, $query)) {
+                    $error = "Errore durante la registrazione: " . mysqli_error($conn);
+                    error_log("Errore MySQL: " . mysqli_error($conn));
+                } else {
+                    error_log("Registrazione completata con successo");
+                    // Set success message in session so it persists after redirect
+                    $_SESSION['registration_success'] = true;
+                    header("Location: login.php");
+                    exit();
+                }
             }
+            mysqli_close($conn);
         }
-        
-        $stmt->close();
-        $conn->close();
     }
+}
+
+// Check for success message from registration
+if (isset($_SESSION['registration_success'])) {
+   
+    unset($_SESSION['registration_success']); // Clear the message
 }
 ?>
 
@@ -435,7 +449,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </svg>
                     </div>
                 </div>
-                <div class="nav-link" href="eventi.php">Eventi</div>
+                <a class="nav-link" href="eventi.php">Eventi</a>
             </div>
             
             <div class="auth-buttons">
@@ -511,8 +525,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php endif; ?>
                 
                 <div class="form-group">
-                    <label for="name" class="form-label">Nome completo</label>
+                    <label for="name" class="form-label">Nome</label>
                     <input type="text" id="name" name="name" placeholder="Il tuo nome" class="form-input" value="<?php echo htmlspecialchars($name); ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="surname" class="form-label">Cognome</label>
+                    <input type="text" id="surname" name="surname" placeholder="Il tuo cognome" class="form-input" value="<?php echo htmlspecialchars($surname); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="birthdate" class="form-label">Data di nascita</label>
+                    <input type="date" id="birthdate" name="birthdate" class="form-input" value="<?php echo htmlspecialchars($birthdate); ?>" required>
                 </div>
                 
                 <div class="form-group">

@@ -544,11 +544,10 @@ if ($isLoggedIn) {
         
         <div class="nav-menu">
             <div class="nav-links">
-            <a class="nav-link" href="index.php">Home</a>
-                <a class="nav-link" href="community.php">Community</a>
+                <a class="nav-link" href="index.php">Home</a>
+                <a class="nav-link active" href="community.php">Community</a>
                 <div class="nav-link-with-icon">
                     <a class="nav-link" href="shop.php">Shop</a>
-                    
                     <div>
                         <svg width="12" height="12" viewBox="0 0 66 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <text fill="#BDD3C6" xml:space="preserve" style="white-space: pre" font-family="DM Sans" font-size="18" letter-spacing="0px"><tspan x="0.475952" y="15.2126">Shop</tspan></text>
@@ -556,7 +555,7 @@ if ($isLoggedIn) {
                         </svg>
                     </div>
                 </div>
-                <div class="nav-link">Eventi</div>
+                <a class="nav-link" href="eventi.php">Eventi</a>
             </div>
             
             <div class="auth-buttons">
@@ -708,10 +707,10 @@ if ($isLoggedIn) {
         <?php if (!$isLoggedIn): ?>
         <a href="registrazione.php" class="cta-button">Inizia ora</a>
         <?php else: ?>
-        <a href="#" class="cta-button">Esplora gli eventi</a>
+        <a href="/eventi.php" class="cta-button">Esplora gli eventi</a>
         <?php endif; ?>
     </div>
-    
+
     <div class="footer">
         <div class="footer-content">
             <div class="footer-logo">
@@ -723,9 +722,9 @@ if ($isLoggedIn) {
                 <div class="footer-column">
                     <div class="footer-column-title">Navigazione</div>
                     <a href="index.php" class="footer-link">Home</a>
-                    <a href="#" class="footer-link">Community</a>
-                    <a href="#" class="footer-link">Shop</a>
-                    <a href="#" class="footer-link">Eventi</a>
+                    <a href="community.php" class="footer-link">Community</a>
+                    <a href="shop.php" class="footer-link">Shop</a>
+                    <a href="/eventi.php" class="footer-link">Eventi</a>
                 </div>
                 
                 <div class="footer-column">

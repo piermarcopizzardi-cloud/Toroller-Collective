@@ -52,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // Login successful
                         $_SESSION['email'] = $email;
                         $_SESSION['password'] = $user['password']; // Store hashed password
+                        $_SESSION['is_admin'] = $user['amministratore'] == 1; // Salva se l'utente è admin
                         header("Location: index.php");
                         exit();
                     } else {

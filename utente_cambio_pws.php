@@ -8,6 +8,12 @@ if (!isset($_SESSION['email']) || !isset($_SESSION['password'])) {
     exit();
 }
 
+// Redirect admin users to admin.php
+if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']) {
+    header("Location: admin.php");
+    exit();
+}
+
 $userEmail = $_SESSION['email'];
 $error = "";
 $success = "";

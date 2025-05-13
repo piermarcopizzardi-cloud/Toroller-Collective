@@ -1,10 +1,16 @@
 <?php 
-$server="localhost"; 
-$user="root"; 
-$password=""; 
-$database="toroller"; 
+function connetti($db){
+    $server="localhost"; 
+    $user="root"; 
+    $password=""; 
+    $database="toroller"; 
 
-$connessione=mysqli_connect($server,$user,$password,$database)
-or die ("errore di connessione".mysqli_connect_error()); 
-
+    $conn = mysqli_connect($server, $user, $password, $database);
+    
+    if (!$conn) {
+        die("Connessione fallita: " . mysqli_connect_error());
+    }
+    
+    return $conn;
+}
 ?>

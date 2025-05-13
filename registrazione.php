@@ -1,12 +1,38 @@
 <?php
-// Start session if not already started
 session_start();
+include("conn.php");
 
-// Check if user is already logged in
-if (isset($_SESSION['user_id'])) {
-    // Redirect to index page
+// Se l'utente ha cliccato su logout
+if (isset($_GET['logout'])) {
+    session_destroy();
     header("Location: index.php");
-    exit;
+    exit();
+}
+
+// Se l'utente è già loggato, redirect a index.php
+if(isset($_SESSION['email']) && isset($_SESSION['password']))
+{
+    header("Location: index.php");
+    exit();
+}
+
+// Controlla se l'utente è loggato
+$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+
+// Ottieni le informazioni dell'utente se è loggato
+$userEmail = '';
+$userName = '';
+if ($isLoggedIn) {
+    $conn = connetti("toroller");
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $query = "SELECT nome, email FROM utente WHERE email = '$email'";
+    $result = mysqli_query($conn, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        $userEmail = $user['email'];
+        $userName = $user['nome'];
+    }
+    mysqli_close($conn);
 }
 
 // Initialize variables
@@ -362,12 +388,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 line-height: 40px;
             }
         }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 16px;
+            border: 1px solid #7FE47E;
+            border-radius: 30px;
+        }
+        
+        .user-email {
+            color: #04CD00;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            color: #BDD3C6;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .logout-btn:hover {
+            color: #04CD00;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="logo-container">
-            <img src="assets/logo.png" alt="TorollerCollective Logo" width="61" height="80">
+            <img src="assets/logo1.jpg" alt="TorollerCollective Logo" width="80" height="80" style="object-fit: contain;">
             <div class="logo-text">TorollerCollective</div>
         </div>
         
@@ -388,8 +439,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             
             <div class="auth-buttons">
+                <?php if ($isLoggedIn): ?>
+                <div class="user-menu">
+                    <span class="user-email"><?php echo htmlspecialchars($userEmail); ?></span>
+                    <a href="?logout=1" class="logout-btn">Logout</a>
+                </div>
+                <?php else: ?>
                 <a href="login.php" class="login-btn">Login</a>
                 <a href="registrazione.php" class="get-started-btn">Get started</a>
+                <?php endif; ?>
             </div>
         </div>
         

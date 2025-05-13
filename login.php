@@ -1,69 +1,92 @@
 <?php
-// Start session if not already started
-session_start();
+// Abilita la visualizzazione degli errori
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Check if user is already logged in
-if (isset($_SESSION['user_id'])) {
-    // Redirect to index page
+session_start();
+include("conn.php");
+
+// Se l'utente è già loggato, redirect a index.php
+if(isset($_SESSION['email']) && isset($_SESSION['password']))
+{
     header("Location: index.php");
-    exit;
+    exit();
 }
 
-// Initialize variables
-$email = "";
-$password = "";
+// Se l'utente ha cliccato su logout
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
 $error = "";
 
-// Process form submission
+// Procedi solo se il form è stato inviato
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
+    $conn = connetti("toroller");
     
-    // Basic validation
-    if (empty($email) || empty($password)) {
-        $error = "Please enter both email and password.";
+    if (!$conn) {
+        $error = "Errore di connessione al database";
     } else {
-        // Database connection
-        $conn = new mysqli("localhost", "username", "password", "toroller"); // Replace with your actual database credentials
+        $email = mysqli_real_escape_string($conn, $_POST["email"]);
+        $password = mysqli_real_escape_string($conn, $_POST["password"]);
         
-        // Check connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-        
-        // Prepare SQL statement to prevent SQL injection
-        $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows == 1) {
-            $user = $result->fetch_assoc();
-            
-            // Verify password
-            if (password_verify($password, $user["password"])) {
-                // Password is correct, start a new session
-                session_start();
-                
-                // Store data in session variables
-                $_SESSION["user_id"] = $user["id"];
-                $_SESSION["email"] = $user["email"];
-
-                
-                // Redirect to index page
-                header("Location: index.php");
-                exit;
-            } else {
-                $error = "Invalid email or password.";
-            }
+        if (empty($email) || empty($password)) {
+            $error = "Per favore, compila tutti i campi.";
         } else {
-            $error = "Invalid email or password.";
+            // Verifica se l'utente esiste
+            $sql = "SELECT * FROM utente WHERE email = '$email'";
+            $ris = mysqli_query($conn, $sql);
+            
+            if (!$ris) {
+                $error = "Errore durante la verifica dell'utente: " . mysqli_error($conn);
+            } else {
+                $num_rows = mysqli_num_rows($ris);
+                if ($num_rows <= 0) {
+                    $error = "Utente non trovato. Registrati per continuare.";
+                } else {
+                    // Verifica la password
+                    $sql = "SELECT * FROM utente WHERE email = '$email' AND password = '$password'";
+                    $ris = mysqli_query($conn, $sql);
+                    
+                    if (!$ris) {
+                        $error = "Errore durante la verifica delle credenziali: " . mysqli_error($conn);
+                    } else {
+                        $num_rows = mysqli_num_rows($ris);
+                        if ($num_rows <= 0) {
+                            $error = "Password non corretta.";
+                        } else {
+                            // Login successful
+                            $_SESSION['email'] = $email;
+                            $_SESSION['password'] = $password;
+                            header("Location: index.php");
+                            exit();
+                        }
+                    }
+                }
+            }
         }
-        
-        $stmt->close();
-        $conn->close();
     }
+}
+
+// Controlla se l'utente è loggato
+$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+
+// Ottieni le informazioni dell'utente se è loggato
+$userEmail = '';
+$userName = '';
+if ($isLoggedIn) {
+    $conn = connetti("toroller");
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $query = "SELECT nome, email FROM utente WHERE email = '$email'";
+    $result = mysqli_query($conn, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        $userEmail = $user['email'];
+        $userName = $user['nome'];
+    }
+    mysqli_close($conn);
 }
 ?>
 
@@ -334,12 +357,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 line-height: 40px;
             }
         }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 16px;
+            border: 1px solid #7FE47E;
+            border-radius: 30px;
+        }
+        
+        .user-email {
+            color: #04CD00;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            color: #BDD3C6;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .logout-btn:hover {
+            color: #04CD00;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="logo-container">
-            <img src="assets/logo.png" alt="TorollerCollective Logo" width="61" height="80">
+            <img src="assets/logo1.jpg" alt="TorollerCollective Logo" width="80" height="80" style="object-fit: contain;">
             <div class="logo-text">TorollerCollective</div>
         </div>
         
@@ -360,8 +408,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             
             <div class="auth-buttons">
+                <?php if ($isLoggedIn): ?>
+                <div class="user-menu">
+                    <span class="user-email"><?php echo htmlspecialchars($userEmail); ?></span>
+                    <a href="?logout=1" class="logout-btn">Logout</a>
+                </div>
+                <?php else: ?>
                 <a href="login.php" class="login-btn">Login</a>
                 <a href="registrazione.php" class="get-started-btn">Get started</a>
+                <?php endif; ?>
             </div>
         </div>
         
@@ -416,9 +471,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         <div class="login-form-container">
             <form class="login-form" method="POST" action="">
-                
-                    <div class="error-message"></div>
-             
+                <?php if (!empty($error)): ?>
+                    <div class="error-message"><?php echo $error; ?></div>
+                <?php endif; ?>
                 
                 <div class="form-group">
                     <label for="email" class="form-label">E-mail</label>
@@ -441,6 +496,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
-
-
 

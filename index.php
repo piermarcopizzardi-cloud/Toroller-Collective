@@ -87,9 +87,9 @@ if ($isLoggedIn) {
         .nav-link {
             color: #BDD3C6;
             font-size: 18px;
-            cursor: pointer;
+            text-decoration: none;
         }
-        
+
         .nav-link.active {
             color: #04CD00;
             font-weight: 600;
@@ -152,11 +152,126 @@ if ($isLoggedIn) {
         .logout-btn:hover {
             color: #04CD00;
         }
-        
+
+        .events-hero {
+            background-color: #04CD00;
+            color: white;
+            padding: 80px 110px;
+            text-align: center;
+        }
+
+        .events-hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .events-hero-description {
+            font-size: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .events-container {
+            padding: 80px 110px;
+            background-color: #F9FAFB;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .event-content {
+            padding: 24px;
+        }
+
+        .event-date {
+            color: #04CD00;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .event-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .event-location {
+            color: #6B7280;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-description {
+            color: #4B5563;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .event-time {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .event-participants {
+            color: #04CD00;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .join-event-btn {
+            display: inline-block;
+            background-color: #04CD00;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .join-event-btn:hover {
+            background-color: #03b600;
+        }
+
         .hamburger-menu {
             display: none;
         }
-        
+ 
         .hero-section {
             display: flex;
             flex-direction: column;
@@ -550,7 +665,7 @@ if ($isLoggedIn) {
         
         <div class="nav-menu">
             <div class="nav-links">
-                <a class="nav-link" href="index.php">Home</a>
+                <a class="nav-link active" href="index.php">Home</a>
                 <a class="nav-link" href="community.php">Community</a>
                 <div class="nav-link-with-icon">
                     <a class="nav-link" href="shop.php">Shop</a>
@@ -561,7 +676,7 @@ if ($isLoggedIn) {
                         </svg>
                     </div>
                 </div>
-                <a class="nav-link" href="eventi.php">Eventi</a>
+                <a class="nav-link " href="eventi.php">Eventi</a>
             </div>
             
             <div class="auth-buttons">

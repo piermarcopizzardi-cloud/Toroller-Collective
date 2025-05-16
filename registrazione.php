@@ -449,13 +449,13 @@ if (isset($_SESSION['registration_success'])) {
                         </svg>
                     </div>
                 </div>
-                <a class="nav-link" href="eventi.php">Eventi</a>
+                <a class="nav-link active" href="eventi.php">Eventi</a>
             </div>
             
             <div class="auth-buttons">
                 <?php if ($isLoggedIn): ?>
                 <div class="user-menu">
-                    <span class="user-email"><?php echo htmlspecialchars($userEmail); ?></span>
+                    <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
                     <a href="?logout=1" class="logout-btn">Logout</a>
                 </div>
                 <?php else: ?>

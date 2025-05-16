@@ -185,7 +185,7 @@ if ($isLoggedIn) {
             background-color: #f5f5f5;
         }
         
-        .header {
+    .header {
             width: 100%;
             height: 118px;
             display: flex;
@@ -193,8 +193,6 @@ if ($isLoggedIn) {
             align-items: center;
             padding-left: 110px;
             padding-right: 110px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .logo-container {
@@ -225,13 +223,18 @@ if ($isLoggedIn) {
         .nav-link {
             color: #BDD3C6;
             font-size: 18px;
-            cursor: pointer;
             text-decoration: none;
         }
-        
+
         .nav-link.active {
             color: #04CD00;
             font-weight: 600;
+        }
+        
+        .nav-link-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .auth-buttons {
@@ -249,6 +252,162 @@ if ($isLoggedIn) {
             text-decoration: none;
         }
         
+        .get-started-btn {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 18px 24px;
+            background-color: #04CD00;
+            border-radius: 30px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 16px;
+            border: 1px solid #7FE47E;
+            border-radius: 30px;
+        }
+        
+        .user-email {
+            color: #04CD00;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            color: #BDD3C6;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .logout-btn:hover {
+            color: #04CD00;
+        }
+
+        .events-hero {
+            background-color: #04CD00;
+            color: white;
+            padding: 80px 110px;
+            text-align: center;
+        }
+
+        .events-hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .events-hero-description {
+            font-size: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .events-container {
+            padding: 80px 110px;
+            background-color: #F9FAFB;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .event-content {
+            padding: 24px;
+        }
+
+        .event-date {
+            color: #04CD00;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .event-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .event-location {
+            color: #6B7280;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-description {
+            color: #4B5563;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .event-time {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .event-participants {
+            color: #04CD00;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .join-event-btn {
+            display: inline-block;
+            background-color: #04CD00;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .join-event-btn:hover {
+            background-color: #03b600;
+        }
+
+        .hamburger-menu {
+            display: none;
+        }
+     
         .get-started-btn {
             color: #ffffff;
             font-size: 16px;
@@ -611,10 +770,18 @@ if ($isLoggedIn) {
         
         <div class="nav-menu">
             <div class="nav-links">
-                <a href="index.php" class="nav-link">Home</a>
-                <a href="community.php" class="nav-link active">Community</a>
-                <a href="shop.php" class="nav-link">Shop</a>
-                <a href="eventi.php" class="nav-link">Eventi</a>
+                <a class="nav-link" href="index.php">Home</a>
+                <a class="nav-link active" href="community.php">Community</a>
+                <div class="nav-link-with-icon">
+                    <a class="nav-link" href="shop.php">Shop</a>
+                    <div>
+                        <svg width="12" height="12" viewBox="0 0 66 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text fill="#BDD3C6" xml:space="preserve" style="white-space: pre" font-family="DM Sans" font-size="18" letter-spacing="0px"><tspan x="0.475952" y="15.2126">Shop</tspan></text>
+                            <path d="M53.3334 6.15796L59.1667 11.9913L65 6.15796" stroke="#211F54" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                </div>
+                <a class="nav-link " href="eventi.php">Eventi</a>
             </div>
             
             <div class="auth-buttons">
@@ -628,6 +795,12 @@ if ($isLoggedIn) {
                 <a href="registrazione.php" class="get-started-btn">Get started</a>
                 <?php endif; ?>
             </div>
+        </div>
+        
+        <div class="hamburger-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
         </div>
     </div>
 

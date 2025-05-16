@@ -1,0 +1,419 @@
+<?php
+session_start();
+include("conn.php");
+
+// Controlla se l'utente è loggato
+$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+
+if (!$isLoggedIn) {
+    header("Location: login.php");
+    exit();
+}
+
+// Ottieni il contenuto del carrello
+$cartItems = [];
+$cartTotal = 0;
+if ($conn) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
+                 FROM carrello c 
+                 JOIN prodotti p ON c.id_prodotto = p.id 
+                 WHERE c.email_utente = '$email'";
+    $cartResult = mysqli_query($conn, $cartQuery);
+    
+    if ($cartResult) {
+        while ($row = mysqli_fetch_assoc($cartResult)) {
+            $cartItems[] = $row;
+            $cartTotal += $row['price'] * $row['quantita'];
+        }
+    }
+}
+
+if ($conn) {
+    mysqli_close($conn);
+}
+
+// Ottieni le informazioni dell'utente se è loggato
+$userEmail = '';
+if ($isLoggedIn && $conn) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $query = "SELECT email FROM utente WHERE email = '$email'";
+    $result = mysqli_query($conn, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        $userEmail = $user['email'];
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - TorollerCollective</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            width: 100%;
+            min-height: 100vh;
+            background-color: #F9FAFB;
+        }
+
+        .header {
+            width: 100%;
+            height: 118px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 110px;
+            padding-right: 110px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-text {
+            color: #04CD00;
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 33px;
+        }
+        
+        .nav-link {
+            color: #BDD3C6;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        .nav-link.active {
+            color: #04CD00;
+            font-weight: 600;
+        }
+        
+        .nav-link-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 16px;
+            border: 1px solid #7FE47E;
+            border-radius: 30px;
+        }
+        
+        .user-email {
+            color: #04CD00;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            color: #BDD3C6;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .checkout-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+        }
+
+        .checkout-summary, .payment-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #04CD00;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-quantity {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #04CD00;
+        }
+
+        .cart-total {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 2px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .payment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .card-details {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .submit-button {
+            background-color: #04CD00;
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+        }
+
+        .submit-button:hover {
+            background-color: #03b600;
+        }
+
+        .payment-options {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .payment-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option.selected {
+            border-color: #04CD00;
+            background-color: #F3FFF3;
+        }
+
+        .payment-option img {
+            height: 24px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="assets/logo1.jpg" alt="TorollerCollective Logo" width="80" height="80" style="object-fit: contain;">
+            <div class="logo-text">TorollerCollective</div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-links">
+                <a class="nav-link" href="index.php">Home</a>
+                <a class="nav-link" href="community.php">Community</a>
+                <div class="nav-link-with-icon">
+                    <a class="nav-link active" href="shop.php">Shop</a>
+                </div>
+                <a class="nav-link" href="eventi.php">Eventi</a>
+            </div>
+
+            <div class="auth-buttons">
+                <?php if ($isLoggedIn): ?>
+                <div class="user-menu">
+                    <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                    <a href="?logout=1" class="logout-btn">Logout</a>
+                </div>
+                <?php else: ?>
+                <a href="login.php" class="login-btn">Login</a>
+                <a href="registrazione.php" class="get-started-btn">Get started</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-container">
+        <div class="checkout-summary">
+            <h2 class="section-title">Riepilogo ordine</h2>
+            <?php foreach ($cartItems as $item): ?>
+            <div class="cart-item">
+                <div class="item-details">
+                    <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
+                    <span class="item-quantity">Quantità: <?php echo $item['quantita']; ?></span>
+                </div>
+                <span class="item-price">€<?php echo number_format($item['price'] * $item['quantita'], 2, ',', '.'); ?></span>
+            </div>
+            <?php endforeach; ?>
+            <div class="cart-total">
+                <span>Totale</span>
+                <span>€<?php echo number_format($cartTotal, 2, ',', '.'); ?></span>
+            </div>
+        </div>
+
+        <div class="payment-section">
+            <h2 class="section-title">Metodo di pagamento</h2>
+            
+            <div class="payment-options">
+                <div class="payment-option selected" onclick="selectPaymentMethod('card')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                    <div>Carta di credito</div>
+                </div>
+                <div class="payment-option" onclick="selectPaymentMethod('apple')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.5 1.32-.82 2.67-2.53 4.08zm-3.09-17.6c-.06 2.83 2.43 4.85 2.55 4.93-1.68 2.33-4.41 1.96-5.38 1.93C8.54 7.03 11.39 4 13.96 2.68z"/>
+                    </svg>
+                    <div>Apple Pay</div>
+                </div>
+            </div>
+
+            <form id="payment-form" class="payment-form">
+                <div class="form-group">
+                    <label class="form-label">Nome sulla carta</label>
+                    <input type="text" class="form-input" placeholder="Nome completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Numero carta</label>
+                    <input type="text" class="form-input" placeholder="1234 5678 9012 3456" required>
+                </div>
+                
+                <div class="card-details">
+                    <div class="form-group">
+                        <label class="form-label">Data di scadenza</label>
+                        <input type="text" class="form-input" placeholder="MM/AA" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CVV</label>
+                        <input type="text" class="form-input" placeholder="123" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-button">Paga €<?php echo number_format($cartTotal, 2, ',', '.'); ?></button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function selectPaymentMethod(method) {
+            const options = document.querySelectorAll('.payment-option');
+            options.forEach(option => option.classList.remove('selected'));
+            
+            if (method === 'card') {
+                document.querySelector('.payment-option:first-child').classList.add('selected');
+                document.getElementById('payment-form').style.display = 'flex';
+            } else {
+                document.querySelector('.payment-option:last-child').classList.add('selected');
+                document.getElementById('payment-form').style.display = 'none';
+                // In una implementazione reale, qui verrebbe attivato Apple Pay
+                alert('Apple Pay sarà implementato prossimamente');
+            }
+        }
+
+        // Per ora preveniamo solo l'invio del form
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Il sistema di pagamento sarà implementato prossimamente con Stripe');
+        });
+    </script>
+</body>
+</html>

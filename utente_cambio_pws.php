@@ -2,6 +2,61 @@
 session_start();
 include("conn.php");
 
+// Controlla se l'utente è loggato
+$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+
+// Se l'utente ha cliccato su logout
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
+$conn = null;
+try {
+    $conn = connetti("toroller");
+    if (!$conn) {
+        throw new Exception("Errore di connessione al database");
+    }
+} catch (Exception $e) {
+    error_log("Errore database: " . $e->getMessage());
+}
+
+// Ottieni le informazioni dell'utente se è loggato
+$userEmail = '';
+$userName = '';
+$cartItems = [];
+$cartTotal = 0;
+
+if ($isLoggedIn && $conn) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $query = "SELECT nome, email FROM utente WHERE email = '$email'";
+    $result = mysqli_query($conn, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        $userEmail = $user['email'];
+        $userName = $user['nome'];
+    }
+
+    // Ottieni il contenuto del carrello per l'utente loggato
+    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
+                 FROM carrello c 
+                 JOIN prodotti p ON c.id_prodotto = p.id 
+                 WHERE c.email_utente = '$email'";
+    $cartResult = mysqli_query($conn, $cartQuery);
+    
+    if ($cartResult) {
+        while ($row = mysqli_fetch_assoc($cartResult)) {
+            $cartItems[] = $row;
+            $cartTotal += $row['price'] * $row['quantita'];
+        }
+    }
+}
+
+if ($conn) {
+    mysqli_close($conn);
+}
+
 // Verify if user is logged in
 if (!isset($_SESSION['email']) || !isset($_SESSION['password'])) {
     header("Location: login.php");
@@ -270,6 +325,132 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             cursor: pointer;
             color: #04CD00;
         }
+
+        /* Cart styles */
+        .cart-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cart-icon {
+            cursor: pointer;
+            position: relative;
+            padding: 8px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #FF0000;
+            color: #FFFFFF;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        .cart-popup {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .cart-popup.active {
+            display: block;
+        }
+
+        .cart-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-popup-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cart-item-price {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .remove-item {
+            background: none;
+            border: none;
+            color: #FF0000;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+        }
+
+        .cart-footer {
+            padding: 16px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-total {
+            font-weight: 600;
+        }
+
+        .checkout-btn {
+            background-color: #04CD00;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #6B7280;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -285,11 +466,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <a class="nav-link" href="community.php">Community</a>
                 <div class="nav-link-with-icon">
                     <a class="nav-link" href="shop.php">Shop</a>
-                    <div>
-                        <svg width="12" height="12" viewBox="0 0 66 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <text fill="#BDD3C6" xml:space="preserve" style="white-space: pre" font-family="DM Sans" font-size="18" letter-spacing="0px"><tspan x="0.475952" y="15.2126">Shop</tspan></text>
-                            <path d="M53.3334 6.15796L59.1667 11.9913L65 6.15796" stroke="#211F54" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                    <div class="cart-container">
+                        <div class="cart-icon" onclick="toggleCart()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            <span class="cart-badge"><?php echo array_sum(array_column($cartItems, 'quantita')); ?></span>
+                        </div>
+                        
+                        <!-- Cart Popup -->
+                        <div id="cartPopup" class="cart-popup">
+                            <div class="cart-popup-header">
+                                <h3>Il tuo carrello</h3>
+                                <span class="close-cart" onclick="toggleCart()">&times;</span>
+                            </div>
+                            <div class="cart-items">
+                                <?php if (!empty($cartItems)): ?>
+                                    <?php foreach ($cartItems as $item): ?>
+                                        <div class="cart-item">
+                                            <div>
+                                                <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                                                <div class="cart-item-price">€<?php echo number_format($item['price'], 2, ',', '.'); ?> x <?php echo $item['quantita']; ?></div>
+                                            </div>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="cart_item_id" value="<?php echo $item['id']; ?>">
+                                                <button type="submit" name="remove_from_cart" class="remove-item">&times;</button>
+                                            </form>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="empty-cart">Il carrello è vuoto</p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="cart-footer">
+                                <div class="cart-total">Totale: €<?php echo number_format($cartTotal, 2, ',', '.'); ?></div>
+                                <?php if (!empty($cartItems)): ?>
+                                    <a href="checkout.php" class="checkout-btn">Procedi all'acquisto</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <a class="nav-link" href="eventi.php">Eventi</a>
@@ -390,6 +607,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 link.addEventListener('click', toggleMenu);
             });
         });
+
+        function toggleCart() {
+            const cartPopup = document.getElementById('cartPopup');
+            cartPopup.classList.toggle('active');
+        }
     </script>
 </body>
 </html>

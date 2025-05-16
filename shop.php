@@ -12,11 +12,20 @@ if (isset($_GET['logout'])) {
     exit();
 }
 
+$conn = null;
+try {
+    $conn = connetti("toroller");
+    if (!$conn) {
+        throw new Exception("Errore di connessione al database");
+    }
+} catch (Exception $e) {
+    error_log("Errore database: " . $e->getMessage());
+}
+
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
 $userName = '';
-if ($isLoggedIn) {
-    $conn = connetti("toroller");
+if ($isLoggedIn && $conn) {
     $email = mysqli_real_escape_string($conn, $_SESSION['email']);
     $query = "SELECT nome, email FROM utente WHERE email = '$email'";
     $result = mysqli_query($conn, $query);
@@ -25,84 +34,128 @@ if ($isLoggedIn) {
         $userEmail = $user['email'];
         $userName = $user['nome'];
     }
-    mysqli_close($conn);
 }
 
-// Sample product data (in a real application, this would come from a database)
-$products = [
-    [
-        'id' => 1,
-        'name' => 'Toroller Classic',
-        'price' => 49.99,
-        'category' => 'Accessori',
-        'image' => 'assets/product1.jpg',
-        'description' => 'Il nostro prodotto classico, perfetto per ogni occasione.'
-    ],
-    [
-        'id' => 2,
-        'name' => 'Toroller Pro',
-        'price' => 79.99,
-        'category' => 'Accessori',
-        'image' => 'assets/product2.jpg',
-        'description' => 'Versione professionale con caratteristiche avanzate.'
-    ],
-    [
-        'id' => 3,
-        'name' => 'T-Shirt Toroller',
-        'price' => 24.99,
-        'category' => 'Abbigliamento',
-        'image' => 'assets/product3.jpg',
-        'description' => 'T-shirt in cotone 100% con logo Toroller.'
-    ],
-    [
-        'id' => 4,
-        'name' => 'Cappellino Toroller',
-        'price' => 19.99,
-        'category' => 'Abbigliamento',
-        'image' => 'assets/product4.jpg',
-        'description' => 'Cappellino regolabile con logo ricamato.'
-    ],
-    [
-        'id' => 5,
-        'name' => 'Toroller Mini',
-        'price' => 34.99,
-        'category' => 'Accessori',
-        'image' => 'assets/product5.jpg',
-        'description' => 'Versione compatta del nostro prodotto principale.'
-    ],
-    [
-        'id' => 6,
-        'name' => 'Felpa Toroller',
-        'price' => 59.99,
-        'category' => 'Abbigliamento',
-        'image' => 'assets/product6.jpg',
-        'description' => 'Felpa calda e confortevole con logo Toroller.'
-    ],
-    [
-        'id' => 7,
-        'name' => 'Toroller Limited Edition',
-        'price' => 99.99,
-        'category' => 'Edizioni Limitate',
-        'image' => 'assets/product7.jpg',
-        'description' => 'Edizione limitata con design esclusivo.'
-    ],
-    [
-        'id' => 8,
-        'name' => 'Borsa Toroller',
-        'price' => 39.99,
-        'category' => 'Accessori',
-        'image' => 'assets/product8.jpg',
-        'description' => 'Borsa in tela resistente con logo Toroller.'
-    ]
-];
+// Gestione aggiunta al carrello
+if (isset($_POST['add_to_cart']) && $isLoggedIn) {
+    $productId = (int)$_POST['product_id'];
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    
+    // Controlla se il prodotto è già nel carrello
+    $query = "SELECT id, quantita FROM carrello WHERE email_utente = '$email' AND id_prodotto = $productId";
+    $result = mysqli_query($conn, $query);
+    
+    if (mysqli_num_rows($result) > 0) {
+        // Aggiorna la quantità
+        $row = mysqli_fetch_assoc($result);
+        $newQuantity = $row['quantita'] + 1;
+        mysqli_query($conn, "UPDATE carrello SET quantita = $newQuantity WHERE id = " . $row['id']);
+    } else {
+        // Inserisci nuovo prodotto nel carrello
+        mysqli_query($conn, "INSERT INTO carrello (email_utente, id_prodotto, quantita) VALUES ('$email', $productId, 1)");
+    }
+    
+    // Reindirizza per evitare il riinvio del form
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
 
-// Get all unique categories
+// Gestione rimozione dal carrello
+if (isset($_POST['remove_from_cart']) && $isLoggedIn) {
+    $cartItemId = (int)$_POST['cart_item_id'];
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    
+    mysqli_query($conn, "DELETE FROM carrello WHERE id = $cartItemId AND email_utente = '$email'");
+    
+    // Reindirizza per evitare il riinvio del form
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+// Gestione verifica carrello via AJAX
+if (isset($_POST['action']) && $_POST['action'] === 'check_cart' && $isLoggedIn) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $cartQuery = "SELECT COUNT(*) as count FROM carrello WHERE email_utente = '$email'";
+    $result = mysqli_query($conn, $cartQuery);
+    $cartCount = mysqli_fetch_assoc($result)['count'];
+    
+    echo json_encode([
+        'success' => true,
+        'cartTotal' => $cartCount
+    ]);
+    exit;
+}
+
+// Aggiunta della gestione sync_cart
+if (isset($_POST['action']) && $_POST['action'] === 'sync_cart' && $isLoggedIn) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $items = json_decode($_POST['items'], true);
+    
+    // Svuota il carrello corrente
+    mysqli_query($conn, "DELETE FROM carrello WHERE email_utente = '$email'");
+    
+    // Inserisci i nuovi prodotti
+    $success = true;
+    foreach ($items as $item) {
+        $name = mysqli_real_escape_string($conn, $item['name']);
+        $query = "SELECT id FROM prodotti WHERE tipologia = '$name' LIMIT 1";
+        $result = mysqli_query($conn, $query);
+        
+        if ($row = mysqli_fetch_assoc($result)) {
+            $productId = $row['id'];
+            $success = mysqli_query($conn, "INSERT INTO carrello (email_utente, id_prodotto, quantita) VALUES ('$email', $productId, 1)");
+            if (!$success) break;
+        }
+    }
+    
+    echo json_encode(['success' => $success]);
+    exit;
+}
+
+// Ottieni il contenuto del carrello per l'utente loggato
+$cartItems = [];
+$cartTotal = 0;
+if ($isLoggedIn && $conn) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
+                 FROM carrello c 
+                 JOIN prodotti p ON c.id_prodotto = p.id 
+                 WHERE c.email_utente = '$email'";
+    $cartResult = mysqli_query($conn, $cartQuery);
+    
+    if ($cartResult) {
+        while ($row = mysqli_fetch_assoc($cartResult)) {
+            $cartItems[] = $row;
+            $cartTotal += $row['price'] * $row['quantita'];
+        }
+    }
+}
+
+// Query per ottenere i prodotti dal database
+$products = [];
+if ($conn) {
+    $query = "SELECT * FROM prodotti";
+    $result = mysqli_query($conn, $query);
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $products[] = [
+                'id' => $row['id'],
+                'name' => $row['tipologia'],
+                'price' => $row['prezzo'],
+                'category' => $row['colore'],
+                'image' => 'assets/product' . $row['id'] . '.jpg',
+                'description' => 'Prodotto ' . $row['tipologia'] . ' di colore ' . $row['colore']
+            ];
+        }
+    }
+}
+
+// Ottieni tutte le categorie uniche
 $categories = array_unique(array_column($products, 'category'));
 
-// Filter products based on search and filter parameters
+// Filtra i prodotti in base ai parametri di ricerca
 $filteredProducts = $products;
 
-// Handle search
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search = strtolower($_GET['search']);
     $filteredProducts = array_filter($filteredProducts, function($product) use ($search) {
@@ -111,7 +164,6 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
     });
 }
 
-// Handle category filter
 if (isset($_GET['category']) && !empty($_GET['category'])) {
     $category = $_GET['category'];
     $filteredProducts = array_filter($filteredProducts, function($product) use ($category) {
@@ -119,7 +171,6 @@ if (isset($_GET['category']) && !empty($_GET['category'])) {
     });
 }
 
-// Handle price range filter
 $minPrice = isset($_GET['min_price']) && is_numeric($_GET['min_price']) ? floatval($_GET['min_price']) : 0;
 $maxPrice = isset($_GET['max_price']) && is_numeric($_GET['max_price']) ? floatval($_GET['max_price']) : 1000;
 
@@ -127,10 +178,9 @@ $filteredProducts = array_filter($filteredProducts, function($product) use ($min
     return $product['price'] >= $minPrice && $product['price'] <= $maxPrice;
 });
 
-// Handle sorting
+// Gestisci l'ordinamento
 if (isset($_GET['sort'])) {
     $sort = $_GET['sort'];
-    
     switch ($sort) {
         case 'price_asc':
             usort($filteredProducts, function($a, $b) {
@@ -155,20 +205,10 @@ if (isset($_GET['sort'])) {
     }
 }
 
-// Handle logout
-if (isset($_GET['logout'])) {
-    // Unset all session variables
-    $_SESSION = array();
-    
-    // Destroy the session
-    session_destroy();
-    
-    // Redirect to the homepage
-    header("Location: index.php");
-    exit;
+if ($conn) {
+    mysqli_close($conn);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -237,6 +277,7 @@ if (isset($_GET['logout'])) {
         }
         
         .nav-link-with-icon {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -876,6 +917,215 @@ if (isset($_GET['logout'])) {
             cursor: pointer;
             color: #04CD00;
         }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #FF0000;
+            color: #FFFFFF;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        .cart-popup {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .cart-popup.active {
+            display: block;
+        }
+
+        .cart-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-popup-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .cart-items {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .cart-footer {
+            padding: 16px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-total {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .checkout-btn {
+            background-color: #04CD00;
+            color: #FFFFFF;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .checkout-btn:hover {
+            background-color: #03b600;
+        }
+
+        /* Aggiungi questi stili al tuo CSS esistente */
+        .cart-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cart-icon {
+            cursor: pointer;
+            position: relative;
+            padding: 8px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #FF0000;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        .cart-popup {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .cart-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-popup-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .close-cart {
+            cursor: pointer;
+            font-size: 24px;
+            color: #666;
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cart-item-price {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .remove-item {
+            background: none;
+            border: none;
+            color: #FF0000;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+        }
+
+        .cart-footer {
+            padding: 16px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-total {
+            font-weight: 600;
+        }
+
+        .checkout-btn {
+            background-color: #04CD00;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #6B7280;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -891,16 +1141,52 @@ if (isset($_GET['logout'])) {
                 <a class="nav-link" href="community.php">Community</a>
                 <div class="nav-link-with-icon">
                     <a class="nav-link active" href="shop.php">Shop</a>
-                    <div>
-                        <svg width="12" height="12" viewBox="0 0 66 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <text fill="#BDD3C6" xml:space="preserve" style="white-space: pre" font-family="DM Sans" font-size="18" letter-spacing="0px"><tspan x="0.475952" y="15.2126">Shop</tspan></text>
-                            <path d="M53.3334 6.15796L59.1667 11.9913L65 6.15796" stroke="#211F54" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                    <div class="cart-container">
+                        <div class="cart-icon" onclick="toggleCart()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            <span class="cart-badge"><?php echo array_sum(array_column($cartItems, 'quantita')); ?></span>
+                        </div>
+                        
+                        <!-- Cart Popup -->
+                        <div id="cartPopup" class="cart-popup">
+                            <div class="cart-popup-header">
+                                <h3>Il tuo carrello</h3>
+                                <span class="close-cart" onclick="toggleCart()">&times;</span>
+                            </div>
+                            <div class="cart-items">
+                                <?php if (!empty($cartItems)): ?>
+                                    <?php foreach ($cartItems as $item): ?>
+                                        <div class="cart-item">
+                                            <div>
+                                                <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                                                <div class="cart-item-price">€<?php echo number_format($item['price'], 2, ',', '.'); ?> x <?php echo $item['quantita']; ?></div>
+                                            </div>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="cart_item_id" value="<?php echo $item['id']; ?>">
+                                                <button type="submit" name="remove_from_cart" class="remove-item">&times;</button>
+                                            </form>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="empty-cart">Il carrello è vuoto</p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="cart-footer">
+                                <div class="cart-total">Totale: €<?php echo number_format($cartTotal, 2, ',', '.'); ?></div>
+                                <?php if (!empty($cartItems)): ?>
+                                    <a href="checkout.php" class="checkout-btn">Procedi all'acquisto</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <a class="nav-link " href="eventi.php">Eventi</a>
+                <a class="nav-link" href="eventi.php">Eventi</a>
             </div>
-            
+
             <div class="auth-buttons">
                 <?php if ($isLoggedIn): ?>
                 <div class="user-menu">
@@ -1034,7 +1320,14 @@ if (isset($_GET['logout'])) {
                         <p class="product-category"><?php echo htmlspecialchars($product['category']); ?></p>
                         <p class="product-description"><?php echo htmlspecialchars($product['description']); ?></p>
                         <p class="product-price">€<?php echo number_format($product['price'], 2, ',', '.'); ?></p>
-                        <button class="add-to-cart">Aggiungi al carrello</button>
+                        <?php if ($isLoggedIn): ?>
+                            <form method="POST">
+                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                <button type="submit" name="add_to_cart" class="add-to-cart">Aggiungi al carrello</button>
+                            </form>
+                        <?php else: ?>
+                            <a href="login.php" class="add-to-cart">Accedi per acquistare</a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -1104,6 +1397,11 @@ if (isset($_GET['logout'])) {
     </div>
     
     <script>
+        // Pulisci il localStorage se l'utente non è loggato
+        <?php if (!$isLoggedIn): ?>
+        localStorage.removeItem('cart');
+        <?php endif; ?>
+
         // Toggle mobile filter sidebar
         document.getElementById('mobileFilterButton').addEventListener('click', function() {
             const filterSidebar = document.getElementById('filterSidebar');
@@ -1116,21 +1414,335 @@ if (isset($_GET['logout'])) {
                 this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/></svg> Mostra filtri';
             }
         });
+
+        // Carrello
+        let cart = [];
+        const cartBadge = document.getElementById('cartBadge');
+        const cartItems = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
         
-        // Add to cart functionality (placeholder)
+        // Aggiornamento carrello
+        function updateCart() {
+            cartBadge.textContent = cart.length;
+            cartItems.innerHTML = '';
+            let total = 0;
+            
+            cart.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'cart-item';
+                itemElement.style.display = 'flex';
+                itemElement.style.justifyContent = 'space-between';
+                itemElement.style.alignItems = 'center';
+                itemElement.style.padding = '8px 0';
+                itemElement.style.borderBottom = '1px solid #E5E7EB';
+                
+                itemElement.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600;">${item.name}</div>
+                        <div style="color: #6B7280;">€${item.price.toFixed(2)}</div>
+                    </div>
+                    <button onclick="removeFromCart(${index})" style="color: #FF0000; background: none; border: none; cursor: pointer;">&times;</button>
+                `;
+                
+                cartItems.appendChild(itemElement);
+                total += item.price;
+            });
+            
+            cartTotal.textContent = `€${total.toFixed(2)}`;
+            
+            // Salva il carrello nel localStorage
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+        
+        // Rimuovi dal carrello
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+        
+        // Carica il carrello dal localStorage
+        window.addEventListener('load', () => {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCart();
+            }
+        });
+        
+        // Aggiungi al carrello (implementazione unica)
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', function() {
-                alert('Prodotto aggiunto al carrello!');
+                // Verifica se l'utente è loggato
+                <?php if (!$isLoggedIn): ?>
+                    window.location.href = 'login.php';
+                    return;
+                <?php endif; ?>
+
+                const productCard = this.closest('.product-card');
+                const name = productCard.querySelector('.product-name').textContent;
+                const priceText = productCard.querySelector('.product-price').textContent;
+                const price = parseFloat(priceText.replace('€', '').replace(',', '.'));
+                
+                cart.push({ name, price });
+                updateCart();
+                
+                // Mostra feedback visivo
+                this.textContent = 'Aggiunto!';
+                setTimeout(() => {
+                    this.textContent = 'Aggiungi al carrello';
+                }, 1000);
             });
         });
 
-        // Toggle mobile menu
-        document.querySelector('.hamburger-menu').addEventListener('click', function() {
-            document.querySelector('.mobile-menu').classList.add('active');
+        // Chiudi il popup del carrello quando si clicca fuori
+        document.addEventListener('click', (e) => {
+            const cartPopup = document.getElementById('cartPopup');
+            const cartIcon = document.getElementById('cartIcon');
+            
+            if (!cartPopup.contains(e.target) && !cartIcon.contains(e.target)) {
+                cartPopup.classList.remove('active');
+            }
         });
 
-        document.querySelector('.close-menu').addEventListener('click', function() {
-            document.querySelector('.mobile-menu').classList.remove('active');
+        // Gestione click sull'icona del carrello
+        const cartIcon = document.getElementById('cartIcon');
+        const cartPopup = document.getElementById('cartPopup');
+        
+        cartIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            <?php if (!$isLoggedIn): ?>
+                window.location.href = 'login.php';
+            <?php else: ?>
+                cartPopup.classList.toggle('active');
+            <?php endif; ?>
+        });
+
+        // Previene la chiusura quando si clicca all'interno del popup
+        cartPopup.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Funzione per il reindirizzamento al checkout
+        function goToCheckout() {
+            const cart = localStorage.getItem('cart');
+            if (!cart || JSON.parse(cart).length === 0) {
+                alert('Il tuo carrello è vuoto');
+                return;
+            }
+            <?php if (!$isLoggedIn): ?>
+            window.location.href = 'login.php';
+            <?php else: ?>
+            // Controlla se ci sono prodotti nel carrello
+            fetch('shop.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=check_cart'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.cartTotal > 0) {
+                    window.location.href = 'checkout.php';
+                } else {
+                    alert('Il tuo carrello è vuoto');
+                }
+            });
+            <?php endif; ?>
+        }
+
+        // Gestione del carrello tramite AJAX
+        function updateCartBadge(total) {
+            document.getElementById('cartBadge').textContent = total;
+        }
+
+        function updateCartDisplay(cartItems, total) {
+            const cartContainer = document.getElementById('cartItems');
+            cartContainer.innerHTML = '';
+            
+            cartItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'cart-item';
+                itemElement.style.display = 'flex';
+                itemElement.style.justifyContent = 'space-between';
+                itemElement.style.alignItems = 'center';
+                itemElement.style.padding = '8px 0';
+                itemElement.style.borderBottom = '1px solid #E5E7EB';
+                
+                itemElement.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600;">${item.name}</div>
+                        <div style="color: #6B7280;">€${item.price} x ${item.quantita}</div>
+                    </div>
+                    <button onclick="removeFromCart(${item.id})" style="color: #FF0000; background: none; border: none; cursor: pointer;">&times;</button>
+                `;
+                
+                cartContainer.appendChild(itemElement);
+            });
+            
+            document.getElementById('cartTotal').textContent = `€${total.toFixed(2)}`;
+        }
+
+        // Aggiungi al carrello
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                <?php if (!$isLoggedIn): ?>
+                    window.location.href = 'login.php';
+                    return;
+                <?php endif; ?>
+
+                const productCard = this.closest('.product-card');
+                const productId = productCard.dataset.productId;
+                
+                fetch('shop.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=add_to_cart&product_id=${productId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateCartBadge(data.cartTotal);
+                        this.textContent = 'Aggiunto!';
+                        setTimeout(() => {
+                            this.textContent = 'Aggiungi al carrello';
+                        }, 1000);
+                    }
+                });
+            });
+        });
+
+        // Rimuovi dal carrello
+        function removeFromCart(cartItemId) {
+            fetch('shop.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=remove_from_cart&cart_item_id=${cartItemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartBadge(data.cartTotal);
+                    updateCartDisplay(data.cartItems, data.total);
+                }
+            });
+        }
+
+        // Gestione del popup del carrello
+        document.addEventListener('click', (e) => {
+            const cartPopup = document.getElementById('cartPopup');
+            const cartIcon = document.getElementById('cartIcon');
+            
+            if (!cartPopup.contains(e.target) && !cartIcon.contains(e.target)) {
+                cartPopup.classList.remove('active');
+            }
+        });
+
+        cartIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            cartPopup.classList.toggle('active');
+        });
+
+        cartPopup.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Funzione per il checkout
+        function goToCheckout() {
+            <?php if (!$isLoggedIn): ?>
+                window.location.href = 'login.php';
+            <?php else: ?>
+                // Controlla se ci sono prodotti nel carrello
+                fetch('shop.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'action=check_cart'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.cartTotal > 0) {
+                        window.location.href = 'checkout.php';
+                    } else {
+                        alert('Il tuo carrello è vuoto');
+                    }
+                });
+            <?php endif; ?>
+        }
+
+        // Modifica alla funzione JavaScript goToCheckout
+        function goToCheckout() {
+            <?php if (!$isLoggedIn): ?>
+                window.location.href = 'login.php';
+                return;
+            <?php endif; ?>
+            
+            // Sincronizza il carrello client con il server
+            const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (cartItems.length === 0) {
+                alert('Il tuo carrello è vuoto');
+                return;
+            }
+            
+            // Invia i prodotti al server e poi vai al checkout
+            fetch('shop.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'sync_cart',
+                    items: JSON.stringify(cartItems)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'checkout.php';
+                } else {
+                    alert('Si è verificato un errore. Riprova.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Si è verificato un errore. Riprova.');
+            });
+        }
+
+        // Inizializza il badge del carrello
+        updateCartBadge(<?php echo array_sum(array_column($cartItems, 'quantita')) ?? 0; ?>);
+
+        // Modifica alla funzione toggleCart per reindirizzare direttamente a checkout.php
+        function toggleCart(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            <?php if (!$isLoggedIn): ?>
+                window.location.href = 'login.php';
+                return;
+            <?php endif; ?>
+            window.location.href = 'checkout.php';
+        }
+
+        // Chiudi il carrello quando si clicca fuori
+        document.addEventListener('click', function(event) {
+            const cartPopup = document.getElementById('cartPopup');
+            const cartIcon = document.querySelector('.cart-icon');
+            
+            if (!cartPopup.contains(event.target) && !cartIcon.contains(event.target)) {
+                cartPopup.style.display = 'none';
+            }
+        });
+
+        // Previeni la chiusura quando si clicca dentro il carrello
+        document.getElementById('cartPopup').addEventListener('click', function(event) {
+            event.stopPropagation();
         });
     </script>
 </body>

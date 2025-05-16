@@ -280,26 +280,58 @@ if ($isLoggedIn) {
             text-align: center;
             position: relative;
             overflow: hidden;
+            background: url('assets/hero.jpg') no-repeat center center;
+            background-size: cover;
+            min-height: 80vh;
+            animation: slideUp 1.2s ease-out forwards;
+            transform: translateY(100%);
+        }
+
+        @keyframes slideUp {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
         }
         
         .hero-title {
-            color: #04CD00;
+            color: #ffffff;
             font-size: 64px;
             font-weight: 800;
             line-height: 1.2;
             margin-bottom: 24px;
             max-width: 800px;
+            position: relative;
+            z-index: 2;
         }
         
         .hero-subtitle {
-            color: #333;
+            color: #ffffff;
             font-size: 24px;
             line-height: 1.5;
             margin-bottom: 40px;
             max-width: 700px;
+            position: relative;
+            z-index: 2;
         }
         
         .hero-buttons {
+            position: relative;
+            z-index: 2;
             display: flex;
             gap: 16px;
             margin-bottom: 60px;
@@ -618,6 +650,8 @@ if ($isLoggedIn) {
             .hamburger-menu {
                 display: block;
                 color: #04CD00;
+                cursor: pointer;
+                z-index: 1001;
             }
             
             .hero-section,
@@ -653,6 +687,43 @@ if ($isLoggedIn) {
                 flex-direction: column;
                 gap: 20px;
             }
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu .nav-link {
+            font-size: 24px;
+            padding: 12px;
+        }
+
+        .mobile-menu .auth-buttons {
+            flex-direction: column;
+            margin-top: 24px;
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            cursor: pointer;
+            color: #04CD00;
         }
     </style>
 </head>
@@ -699,6 +770,30 @@ if ($isLoggedIn) {
         </div>
     </div>
     
+    <div class="mobile-menu">
+        <div class="close-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+        <a class="nav-link active" href="index.php">Home</a>
+        <a class="nav-link" href="community.php">Community</a>
+        <a class="nav-link" href="shop.php">Shop</a>
+        <a class="nav-link" href="eventi.php">Eventi</a>
+        
+        <div class="auth-buttons">
+            <?php if ($isLoggedIn): ?>
+            <div class="user-menu">
+                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                <a href="?logout=1" class="logout-btn">Logout</a>
+            </div>
+            <?php else: ?>
+            <a href="login.php" class="login-btn">Login</a>
+            <a href="registrazione.php" class="get-started-btn">Get started</a>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <div class="hero-section">
         <h1 class="hero-title">Bike To School</h1>
         <p class="hero-subtitle">Unisciti a noi per condividere la tua passione, connetterti con altri appassionati ed educare alla strada.</p>
@@ -711,8 +806,6 @@ if ($isLoggedIn) {
             <a href="#community" class="get-started-btn">Esplora la community</a>
             <?php endif; ?>
         </div>
-        
-        <img src="assets/hero.jpg" alt="TorollerCollective Community" class="hero-image">
     </div>
     
     <div class="features-section">
@@ -887,5 +980,27 @@ if ($isLoggedIn) {
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger-menu');
+            const closeMenu = document.querySelector('.close-menu');
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
+
+            function toggleMenu() {
+                mobileMenu.classList.toggle('active');
+                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+            }
+
+            hamburger.addEventListener('click', toggleMenu);
+            closeMenu.addEventListener('click', toggleMenu);
+
+            // Close menu when clicking on links
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', toggleMenu);
+            });
+        });
+    </script>
 </body>
 </html>

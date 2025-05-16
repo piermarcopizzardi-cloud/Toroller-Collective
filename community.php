@@ -25,6 +25,141 @@ if ($isLoggedIn) {
         $userEmail = $user['email'];
         $userName = $user['nome'];
     }
+
+    // Creazione tabelle del forum se non esistono
+    $create_categories = "CREATE TABLE IF NOT EXISTS forum_categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    
+    $create_topics = "CREATE TABLE IF NOT EXISTS forum_topics (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category_id INT,
+        user_email VARCHAR(255),
+        title VARCHAR(255) NOT NULL,
+        content TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES forum_categories(id),
+        FOREIGN KEY (user_email) REFERENCES utente(email)
+    )";
+    
+    $create_replies = "CREATE TABLE IF NOT EXISTS forum_replies (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        topic_id INT,
+        user_email VARCHAR(255),
+        content TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (topic_id) REFERENCES forum_topics(id),
+        FOREIGN KEY (user_email) REFERENCES utente(email)
+    )";
+
+    mysqli_query($conn, $create_categories);
+    mysqli_query($conn, $create_topics);
+    mysqli_query($conn, $create_replies);
+
+    // Inserisci categorie di default se non esistono
+    $check_categories = "SELECT COUNT(*) as count FROM forum_categories";
+    $result = mysqli_query($conn, $check_categories);
+    $count = mysqli_fetch_assoc($result)['count'];
+
+    if ($count == 0) {
+        $default_categories = [
+            ['name' => 'Generale', 'description' => 'Discussioni generali sulla community'],
+            ['name' => 'Eventi', 'description' => 'Discussioni sugli eventi passati e futuri'],
+            ['name' => 'Tecnica', 'description' => 'Discussioni tecniche e consigli'],
+            ['name' => 'Mercatino', 'description' => 'Compra-vendita tra membri della community']
+        ];
+
+        foreach ($default_categories as $category) {
+            $name = mysqli_real_escape_string($conn, $category['name']);
+            $desc = mysqli_real_escape_string($conn, $category['description']);
+            mysqli_query($conn, "INSERT INTO forum_categories (name, description) VALUES ('$name', '$desc')");
+        }
+    }
+
+    // Gestione delle azioni del forum
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['action'])) {
+            switch ($_POST['action']) {
+                case 'create_topic':
+                    $category_id = mysqli_real_escape_string($conn, $_POST['category_id']);
+                    $title = mysqli_real_escape_string($conn, $_POST['title']);
+                    $content = mysqli_real_escape_string($conn, $_POST['content']);
+                    
+                    $query = "INSERT INTO forum_topics (category_id, user_email, title, content) 
+                             VALUES ('$category_id', '$userEmail', '$title', '$content')";
+                    mysqli_query($conn, $query);
+                    header("Location: community.php?category=$category_id");
+                    exit();
+                    break;
+
+                case 'create_reply':
+                    $topic_id = mysqli_real_escape_string($conn, $_POST['topic_id']);
+                    $content = mysqli_real_escape_string($conn, $_POST['content']);
+                    
+                    $query = "INSERT INTO forum_replies (topic_id, user_email, content) 
+                             VALUES ('$topic_id', '$userEmail', '$content')";
+                    mysqli_query($conn, $query);
+                    header("Location: community.php?topic=$topic_id");
+                    exit();
+                    break;
+            }
+        }
+    }
+
+    // Recupera i dati del forum
+    $category_id = isset($_GET['category']) ? (int)$_GET['category'] : null;
+    $topic_id = isset($_GET['topic']) ? (int)$_GET['topic'] : null;
+
+    // Recupera le categorie
+    $categories = [];
+    $result = mysqli_query($conn, "SELECT * FROM forum_categories ORDER BY name");
+    while ($row = mysqli_fetch_assoc($result)) {
+        $categories[] = $row;
+    }
+
+    // Recupera i topic se è selezionata una categoria
+    $topics = [];
+    if ($category_id) {
+        $query = "SELECT t.*, u.nome as author_name, 
+                 (SELECT COUNT(*) FROM forum_replies WHERE topic_id = t.id) as reply_count
+                 FROM forum_topics t 
+                 LEFT JOIN utente u ON t.user_email = u.email
+                 WHERE t.category_id = $category_id 
+                 ORDER BY t.created_at DESC";
+        $result = mysqli_query($conn, $query);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $topics[] = $row;
+        }
+    }
+
+    // Recupera un topic specifico e le sue risposte
+    $current_topic = null;
+    $replies = [];
+    if ($topic_id) {
+        $query = "SELECT t.*, u.nome as author_name, c.name as category_name 
+                 FROM forum_topics t 
+                 LEFT JOIN utente u ON t.user_email = u.email
+                 LEFT JOIN forum_categories c ON t.category_id = c.id
+                 WHERE t.id = $topic_id";
+        $result = mysqli_query($conn, $query);
+        $current_topic = mysqli_fetch_assoc($result);
+
+        if ($current_topic) {
+            $query = "SELECT r.*, u.nome as author_name 
+                     FROM forum_replies r 
+                     LEFT JOIN utente u ON r.user_email = u.email
+                     WHERE r.topic_id = $topic_id 
+                     ORDER BY r.created_at";
+            $result = mysqli_query($conn, $query);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $replies[] = $row;
+            }
+        }
+    }
+
     mysqli_close($conn);
 }
 ?>
@@ -34,7 +169,7 @@ if ($isLoggedIn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TorollerCollective - Home</title>
+    <title>TorollerCollective - Forum della Community</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         * {
@@ -47,7 +182,7 @@ if ($isLoggedIn) {
         body {
             width: 100%;
             min-height: 100vh;
-            background-color: #ffffff;
+            background-color: #f5f5f5;
         }
         
         .header {
@@ -58,6 +193,8 @@ if ($isLoggedIn) {
             align-items: center;
             padding-left: 110px;
             padding-right: 110px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .logo-container {
@@ -89,17 +226,12 @@ if ($isLoggedIn) {
             color: #BDD3C6;
             font-size: 18px;
             cursor: pointer;
+            text-decoration: none;
         }
         
         .nav-link.active {
             color: #04CD00;
             font-weight: 600;
-        }
-        
-        .nav-link-with-icon {
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
         .auth-buttons {
@@ -128,409 +260,344 @@ if ($isLoggedIn) {
             border: none;
             cursor: pointer;
         }
-        
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 8px 16px;
-            border: 1px solid #7FE47E;
-            border-radius: 30px;
+
+        .forum-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
-        
-        .user-email {
-            color: #04CD00;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .logout-btn {
-            color: #BDD3C6;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .logout-btn:hover {
-            color: #04CD00;
-        }
-        
-        .hamburger-menu {
-            display: none;
-        }
-        
-        .hero-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 100px 110px;
+
+        .forum-header {
             text-align: center;
+            margin-bottom: 60px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .forum-title {
+            color: #04CD00;
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .forum-description {
+            color: #6B7280;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .forum-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .category-card {
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             position: relative;
             overflow: hidden;
         }
-        
-        .hero-title {
-            color: #04CD00;
-            font-size: 64px;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 24px;
-            max-width: 800px;
-        }
-        
-        .hero-subtitle {
-            color: #333;
-            font-size: 24px;
-            line-height: 1.5;
-            margin-bottom: 40px;
-            max-width: 700px;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 60px;
-        }
-        
-        .hero-image {
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1000px;
-            height: auto;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            height: 4px;
+            background: #04CD00;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
-        
-        .features-section {
-            padding: 80px 110px;
-            background-color: #F9FAFB;
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
-        
-        .section-title {
+
+        .category-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .category-title {
             color: #04CD00;
-            font-size: 40px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-        }
-        
-        .feature-card {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background-color: #E6F7E6;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        
-        .feature-icon svg {
-            width: 30px;
-            height: 30px;
-            color: #04CD00;
-        }
-        
-        .feature-title {
-            color: #333;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             margin-bottom: 12px;
         }
-        
-        .feature-description {
+
+        .category-description {
             color: #6B7280;
             font-size: 16px;
-            line-height: 1.5;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
-        
-        .community-section {
-            padding: 80px 110px;
-            display: flex;
-            align-items: center;
-            gap: 60px;
-        }
-        
-        .community-image {
-            flex: 1;
-            max-width: 500px;
+
+        .topic-list {
+            background: #ffffff;
             border-radius: 20px;
             overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-        
-        .community-image img {
-            width: 100%;
-            height: auto;
+
+        .topic-item {
+            padding: 25px;
+            border-bottom: 1px solid #E5E7EB;
             display: block;
-        }
-        
-        .community-content {
-            flex: 1;
-        }
-        
-        .community-title {
-            color: #04CD00;
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 24px;
-        }
-        
-        .community-description {
-            color: #333;
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        
-        .community-features {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 30px;
-        }
-        
-        .community-feature {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        
-        .community-feature-text {
-            color: #333;
-            font-size: 18px;
-        }
-        
-        .cta-section {
-            padding: 80px 110px;
-            background-color: #04CD00;
-            text-align: center;
-        }
-        
-        .cta-title {
-            color: #ffffff;
-            font-size: 40px;
-            font-weight: 700;
-            margin-bottom: 24px;
-        }
-        
-        .cta-description {
-            color: #ffffff;
-            font-size: 20px;
-            line-height: 1.5;
-            margin-bottom: 40px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background-color: #ffffff;
-            color: #04CD00;
-            font-size: 18px;
-            font-weight: 700;
-            padding: 18px 36px;
-            border-radius: 30px;
             text-decoration: none;
+            transition: all 0.3s ease;
+            background: #ffffff;
         }
-        
-        .footer {
-            padding: 60px 110px 30px;
-            background-color: #1F2937;
-            color: #ffffff;
+
+        .topic-item:hover {
+            background: #F9FAFB;
         }
-        
-        .footer-content {
+
+        .topic-info {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 40px;
-        }
-        
-        .footer-logo {
-            display: flex;
-            flex-direction: column;
+            align-items: flex-start;
             gap: 20px;
         }
-        
-        .footer-logo-text {
-            color: #04CD00;
-            font-size: 24px;
-            font-weight: 800;
+
+        .topic-main {
+            flex: 1;
         }
-        
-        .footer-description {
-            color: #D1D5DB;
-            max-width: 300px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .footer-links {
-            display: flex;
-            gap: 80px;
-        }
-        
-        .footer-column {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        
-        .footer-column-title {
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .footer-link {
-            color: #D1D5DB;
-            font-size: 14px;
+
+        .topic-title {
+            color: #111827;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
             text-decoration: none;
+            display: block;
         }
-        
-        .footer-link:hover {
+
+        .topic-title:hover {
             color: #04CD00;
         }
-        
-        .footer-bottom {
+
+        .topic-meta {
+            color: #6B7280;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .topic-author {
+            color: #04CD00;
+            font-weight: 600;
+        }
+
+        .topic-stats {
+            background: #F3F4F6;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #6B7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .create-topic-btn {
+            background: #04CD00;
+            color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .create-topic-btn:hover {
+            background: #03b100;
+            transform: translateY(-2px);
+        }
+
+        .create-topic-form,
+        .create-reply-form {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #04CD00;
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-submit {
+            background: #04CD00;
+            color: #ffffff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-submit:hover {
+            background: #03b100;
+            transform: translateY(-2px);
+        }
+
+        .login-prompt {
+            text-align: center;
+            padding: 60px;
+            background: #ffffff;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .login-prompt p {
+            color: #374151;
+            font-size: 20px;
+            margin-bottom: 25px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .breadcrumb a {
+            color: #04CD00;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb span {
+            color: #9CA3AF;
+        }
+
+        .topic-content {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .topic-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .topic-body {
+            color: #374151;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .reply-list {
+            margin-top: 30px;
+        }
+
+        .reply-item {
+            background: #F9FAFB;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #04CD00;
+        }
+
+        .reply-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding-top: 30px;
-            border-top: 1px solid #374151;
+            margin-bottom: 15px;
         }
-        
-        .footer-copyright {
-            color: #D1D5DB;
+
+        .reply-author {
+            color: #04CD00;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .reply-date {
+            color: #6B7280;
             font-size: 14px;
         }
-        
-        .footer-social {
-            display: flex;
-            gap: 16px;
+
+        .reply-content {
+            color: #374151;
+            font-size: 16px;
+            line-height: 1.6;
         }
-        
-        .footer-social-icon {
-            width: 36px;
-            height: 36px;
-            background-color: #374151;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .footer-social-icon svg {
-            width: 20px;
-            height: 20px;
-            color: #ffffff;
-        }
-        
-        @media (max-width: 991px) {
-            .header {
-                padding-left: 40px;
-                padding-right: 40px;
-            }
-            
-            .hero-section,
-            .features-section,
-            .community-section,
-            .cta-section,
-            .footer {
-                padding-left: 40px;
-                padding-right: 40px;
-            }
-            
-            .hero-title {
-                font-size: 48px;
-            }
-            
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .community-section {
-                flex-direction: column;
-            }
-            
-            .community-image {
-                max-width: 100%;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                gap: 40px;
-            }
-            
-            .footer-links {
-                flex-wrap: wrap;
-                gap: 40px;
-            }
-        }
-        
-        @media (max-width: 640px) {
+
+        @media (max-width: 768px) {
             .header {
                 padding-left: 20px;
                 padding-right: 20px;
             }
-            
-            .nav-menu {
-                display: none;
-            }
-            
-            .hamburger-menu {
-                display: block;
-                color: #04CD00;
-            }
-            
-            .hero-section,
-            .features-section,
-            .community-section,
-            .cta-section,
-            .footer {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            
-            .hero-title {
-                font-size: 36px;
-            }
-            
-            .hero-subtitle {
-                font-size: 18px;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-            }
-            
-            .features-grid {
+
+            .forum-categories {
                 grid-template-columns: 1fr;
             }
-            
-            .section-title {
-                font-size: 32px;
-            }
-            
-            .footer-bottom {
+
+            .topic-info {
                 flex-direction: column;
-                gap: 20px;
+            }
+
+            .topic-stats {
+                align-self: flex-start;
+            }
+
+            .breadcrumb {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -544,18 +611,10 @@ if ($isLoggedIn) {
         
         <div class="nav-menu">
             <div class="nav-links">
-                <a class="nav-link" href="index.php">Home</a>
-                <a class="nav-link active" href="community.php">Community</a>
-                <div class="nav-link-with-icon">
-                    <a class="nav-link" href="shop.php">Shop</a>
-                    <div>
-                        <svg width="12" height="12" viewBox="0 0 66 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <text fill="#BDD3C6" xml:space="preserve" style="white-space: pre" font-family="DM Sans" font-size="18" letter-spacing="0px"><tspan x="0.475952" y="15.2126">Shop</tspan></text>
-                            <path d="M53.3334 6.15796L59.1667 11.9913L65 6.15796" stroke="#211F54" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </div>
-                </div>
-                <a class="nav-link" href="eventi.php">Eventi</a>
+                <a href="index.php" class="nav-link">Home</a>
+                <a href="community.php" class="nav-link active">Community</a>
+                <a href="shop.php" class="nav-link">Shop</a>
+                <a href="eventi.php" class="nav-link">Eventi</a>
             </div>
             
             <div class="auth-buttons">
@@ -570,201 +629,124 @@ if ($isLoggedIn) {
                 <?php endif; ?>
             </div>
         </div>
-        
-        <div class="hamburger-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </div>
-    </div>
-    
-    <div class="hero-section">
-        <h1 class="hero-title">Benvenuti nella community di TorollerCollective</h1>
-        <p class="hero-subtitle">Unisciti a noi per condividere la tua passione, connetterti con altri appassionati e scoprire nuove opportunità.</p>
-        
-        <div class="hero-buttons">
-            <?php if (!$isLoggedIn): ?>
-            <a href="registrazione.php" class="get-started-btn">Unisciti ora</a>
-            <a href="login.php" class="login-btn">Accedi</a>
-            <?php else: ?>
-            <a href="#community" class="get-started-btn">Esplora la community</a>
-            <?php endif; ?>
-        </div>
-        
-        <img src="assets/hero-image.jpg" alt="TorollerCollective Community" class="hero-image">
-    </div>
-    
-    <div class="features-section">
-        <h2 class="section-title">Cosa offriamo</h2>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
-                <h3 class="feature-title">Community Attiva</h3>
-                <p class="feature-description">Connettiti con altri appassionati, condividi esperienze e partecipa a discussioni stimolanti.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <h3 class="feature-title">Eventi Esclusivi</h3>
-                <p class="feature-description">Partecipa a eventi esclusivi, workshop e incontri organizzati per la nostra community.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11a4 4 0 11-8 0 4 4 0 018 0zm-4-5a.75.75 0 01.75.75V8h1.5a.75.75 0 010 1.5h-1.5v1.25a.75.75 0 01-1.5 0V9.5h-1.5a.75.75 0 010-1.5h1.5V6.75A.75.75 0 0112 6zM3 17.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" />
-                    </svg>
-                </div>
-                <h3 class="feature-title">Prodotti Esclusivi</h3>
-                <p class="feature-description">Accedi al nostro shop con prodotti esclusivi selezionati per la nostra community.</p>
-            </div>
-        </div>
-    </div>
-    
-    <div id="community" class="community-section">
-        <div class="community-image">
-            <img src="assets/community-image.jpg" alt="TorollerCollective Community">
-        </div>
-        
-        <div class="community-content">
-            <h2 class="community-title">Una community in crescita</h2>
-            <p class="community-description">TorollerCollective è una community di appassionati che condividono interessi, esperienze e conoscenze. Siamo un gruppo in continua crescita, unito dalla passione e dal desiderio di creare connessioni significative.</p>
-            
-            <div class="community-features">
-                <div class="community-feature">
-                    <div>
-                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_16_1289)">
-                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_16_1289">
-                                    <rect width="26" height="26" fill="white"></rect>
-                                </clipPath>
-                            </defs>
-                        </svg>
-                    </div>
-                    <div class="community-feature-text">Oltre 5.000 membri attivi</div>
-                </div>
-                
-                <div class="community-feature">
-                    <div>
-                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_16_1296)">
-                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_16_1296">
-                                    <rect width="26" height="26" fill="white"></rect>
-                                </clipPath>
-                            </defs>
-                        </svg>
-                    </div>
-                    <div class="community-feature-text">Eventi mensili in tutta Italia</div>
-                </div>
-                
-                <div class="community-feature">
-                    <div>
-                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_16_1296)">
-                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_16_1296">
-                                    <rect width="26" height="26" fill="white"></rect>
-                                </clipPath>
-                            </defs>
-                        </svg>
-                    </div>
-                    <div class="community-feature-text">Collaborazioni con brand e artisti</div>
-                </div>
-            </div>
-            
-            <?php if (!$isLoggedIn): ?>
-            <a href="registrazione.php" class="get-started-btn">Unisciti a noi</a>
-            <?php endif; ?>
-        </div>
-    </div>
-    
-    <div class="cta-section">
-        <h2 class="cta-title">Pronto a far parte della nostra community?</h2>
-        <p class="cta-description">Unisciti a TorollerCollective oggi stesso e scopri un mondo di opportunità, connessioni e esperienze condivise.</p>
-        
-        <?php if (!$isLoggedIn): ?>
-        <a href="registrazione.php" class="cta-button">Inizia ora</a>
-        <?php else: ?>
-        <a href="/eventi.php" class="cta-button">Esplora gli eventi</a>
-        <?php endif; ?>
     </div>
 
-    <div class="footer">
-        <div class="footer-content">
-            <div class="footer-logo">
-                <div class="footer-logo-text">TorollerCollective</div>
-                <p class="footer-description">Una community di appassionati uniti dalla passione e dal desiderio di creare connessioni significative.</p>
+    <div class="forum-container">
+        <?php if (!$isLoggedIn): ?>
+            <div class="login-prompt">
+                <p>Per partecipare alle discussioni devi essere registrato</p>
+                <a href="login.php" class="get-started-btn">Accedi</a>
+                <span style="margin: 0 10px;">o</span>
+                <a href="registrazione.php" class="get-started-btn">Registrati</a>
             </div>
-            
-            <div class="footer-links">
-                <div class="footer-column">
-                    <div class="footer-column-title">Navigazione</div>
-                    <a href="index.php" class="footer-link">Home</a>
-                    <a href="community.php" class="footer-link">Community</a>
-                    <a href="shop.php" class="footer-link">Shop</a>
-                    <a href="/eventi.php" class="footer-link">Eventi</a>
+        <?php else: ?>
+            <?php if ($topic_id && $current_topic): ?>
+                <!-- Visualizzazione Topic e Risposte -->
+                <div class="breadcrumb">
+                    <a href="community.php">Forum</a>
+                    <span>/</span>
+                    <a href="community.php?category=<?php echo $current_topic['category_id']; ?>"><?php echo htmlspecialchars($current_topic['category_name']); ?></a>
+                    <span>/</span>
+                    <span><?php echo htmlspecialchars($current_topic['title']); ?></span>
                 </div>
-                
-                <div class="footer-column">
-                    <div class="footer-column-title">Account</div>
-                    <?php if (!$isLoggedIn): ?>
-                    <a href="login.php" class="footer-link">Accedi</a>
-                    <a href="registrazione.php" class="footer-link">Registrati</a>
-                    <?php else: ?>
-                    <a href="#" class="footer-link">Il mio profilo</a>
-                    <a href="index.php?logout=1" class="footer-link">Logout</a>
-                    <?php endif; ?>
-                    <a href="#" class="footer-link">Assistenza</a>
+
+                <div class="topic-content">
+                    <div class="topic-header">
+                        <h1 class="topic-title"><?php echo htmlspecialchars($current_topic['title']); ?></h1>
+                        <div class="topic-meta">
+                            <span class="topic-author"><?php echo htmlspecialchars($current_topic['author_name']); ?></span>
+                            <span class="topic-date"><?php echo date('d/m/Y H:i', strtotime($current_topic['created_at'])); ?></span>
+                        </div>
+                    </div>
+                    <div class="topic-body">
+                        <?php echo nl2br(htmlspecialchars($current_topic['content'])); ?>
+                    </div>
                 </div>
-                
-                <div class="footer-column">
-                    <div class="footer-column-title">Contatti</div>
-                    <a href="mailto:info@torollercollective.it" class="footer-link">info@torollercollective.it</a>
-                    <a href="tel:+390123456789" class="footer-link">+39 0123 456789</a>
-                    <a href="#" class="footer-link">Milano, Italia</a>
+
+                <div class="reply-list">
+                    <?php foreach ($replies as $reply): ?>
+                        <div class="reply-item">
+                            <div class="reply-header">
+                                <span class="reply-author"><?php echo htmlspecialchars($reply['author_name']); ?></span>
+                                <span class="reply-date"><?php echo date('d/m/Y H:i', strtotime($reply['created_at'])); ?></span>
+                            </div>
+                            <div class="reply-content">
+                                <?php echo nl2br(htmlspecialchars($reply['content'])); ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <div class="footer-copyright">© <?php echo date("Y"); ?> TorollerCollective. Tutti i diritti riservati.</div>
-            
-            <div class="footer-social">
-            <a href="https://www.facebook.com/share/195xtDc71D/?mibextid=wwXIfr" class="footer-social-icon" target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
-                    </svg>
-                </a>
-                <a href="https://www.instagram.com/torollercollective?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" class="footer-social-icon"target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"/>
-                    </svg>
-                </a>
-              
-            </div>
-        </div>
+
+                <form class="create-reply-form" method="POST">
+                    <input type="hidden" name="action" value="create_reply">
+                    <input type="hidden" name="topic_id" value="<?php echo $topic_id; ?>">
+                    <div class="form-group">
+                        <label class="form-label">La tua risposta</label>
+                        <textarea class="form-textarea" name="content" required></textarea>
+                    </div>
+                    <button type="submit" class="form-submit">Rispondi</button>
+                </form>
+
+            <?php elseif ($category_id): ?>
+                <!-- Lista dei Topic nella Categoria -->
+                <div class="breadcrumb">
+                    <a href="community.php">Forum</a>
+                    <span>/</span>
+                    <span><?php echo htmlspecialchars($categories[array_search($category_id, array_column($categories, 'id'))]['name']); ?></span>
+                </div>
+
+                <a href="#" class="create-topic-btn" onclick="document.getElementById('create-topic-form').style.display='block'">Crea nuovo topic</a>
+
+                <form id="create-topic-form" class="create-topic-form" method="POST" style="display: none;">
+                    <input type="hidden" name="action" value="create_topic">
+                    <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                    <div class="form-group">
+                        <label class="form-label">Titolo</label>
+                        <input type="text" class="form-input" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contenuto</label>
+                        <textarea class="form-textarea" name="content" required></textarea>
+                    </div>
+                    <button type="submit" class="form-submit">Pubblica Topic</button>
+                </form>
+
+                <div class="topic-list">
+                    <?php foreach ($topics as $topic): ?>
+                        <a href="community.php?topic=<?php echo $topic['id']; ?>" class="topic-item">
+                            <div class="topic-info">
+                                <div class="topic-main">
+                                    <h2 class="topic-title"><?php echo htmlspecialchars($topic['title']); ?></h2>
+                                    <div class="topic-meta">
+                                        <span class="topic-author"><?php echo htmlspecialchars($topic['author_name']); ?></span>
+                                        <span><?php echo date('d/m/Y H:i', strtotime($topic['created_at'])); ?></span>
+                                    </div>
+                                </div>
+                                <div class="topic-stats">
+                                    <?php echo $topic['reply_count']; ?> risposte
+                                </div>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+
+            <?php else: ?>
+                <!-- Lista delle Categorie -->
+                <div class="forum-header">
+                    <h1 class="forum-title">Forum della Community</h1>
+                    <p class="forum-description">Partecipa alle discussioni, condividi le tue esperienze e connettiti con altri membri della community.</p>
+                </div>
+
+                <div class="forum-categories">
+                    <?php foreach ($categories as $category): ?>
+                        <a href="community.php?category=<?php echo $category['id']; ?>" class="category-card">
+                            <h2 class="category-title"><?php echo htmlspecialchars($category['name']); ?></h2>
+                            <p class="category-description"><?php echo htmlspecialchars($category['description']); ?></p>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
     </div>
 </body>
 </html>

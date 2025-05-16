@@ -193,9 +193,16 @@ if ($isLoggedIn) {
         .hero-image {
             width: 100%;
             max-width: 1000px;
-            height: auto;
+            height: auto !important;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: block;
+            object-fit: cover;
+            min-height: 300px;
+            background-color: #f5f5f5;
+            margin: 0 auto;
+            z-index: 1;
+            position: relative;
         }
         
         .features-section {
@@ -590,7 +597,7 @@ if ($isLoggedIn) {
             <?php endif; ?>
         </div>
         
-        <img src="assets/hero-image.jpg" alt="TorollerCollective Community" class="hero-image">
+        <img src="assets/hero.jpg" alt="TorollerCollective Community" class="hero-image">
     </div>
     
     <div class="features-section">
@@ -706,7 +713,7 @@ if ($isLoggedIn) {
         <?php if (!$isLoggedIn): ?>
         <a href="registrazione.php" class="cta-button">Inizia ora</a>
         <?php else: ?>
-        <a href="/eventi.php" class="cta-button">Esplora gli eventi</a>
+        <a href="eventi.php" class="cta-button">Esplora gli eventi</a>
         <?php endif; ?>
     </div>
     

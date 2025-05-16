@@ -407,7 +407,77 @@ if ($isLoggedIn) {
         .hamburger-menu {
             display: none;
         }
-     
+
+        @media (max-width: 991px) {
+            .header {
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+
+            .forum-container {
+                padding: 40px;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .header {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .hamburger-menu {
+                display: block;
+                color: #04CD00;
+                cursor: pointer;
+                z-index: 1001;
+            }
+
+            .forum-container {
+                padding: 20px;
+            }
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu .nav-link {
+            font-size: 24px;
+            padding: 12px;
+        }
+
+        .mobile-menu .auth-buttons {
+            flex-direction: column;
+            margin-top: 24px;
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            cursor: pointer;
+            color: #04CD00;
+        }
+
         .get-started-btn {
             color: #ffffff;
             font-size: 16px;
@@ -804,6 +874,30 @@ if ($isLoggedIn) {
         </div>
     </div>
 
+    <div class="mobile-menu">
+        <div class="close-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link active" href="community.php">Community</a>
+        <a class="nav-link" href="shop.php">Shop</a>
+        <a class="nav-link" href="eventi.php">Eventi</a>
+        
+        <div class="auth-buttons">
+            <?php if ($isLoggedIn): ?>
+            <div class="user-menu">
+                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                <a href="?logout=1" class="logout-btn">Logout</a>
+            </div>
+            <?php else: ?>
+            <a href="login.php" class="login-btn">Login</a>
+            <a href="registrazione.php" class="get-started-btn">Get started</a>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <div class="forum-container">
         <?php if (!$isLoggedIn): ?>
             <div class="login-prompt">
@@ -921,5 +1015,27 @@ if ($isLoggedIn) {
             <?php endif; ?>
         <?php endif; ?>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger-menu');
+            const closeMenu = document.querySelector('.close-menu');
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
+
+            function toggleMenu() {
+                mobileMenu.classList.toggle('active');
+                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+            }
+
+            hamburger.addEventListener('click', toggleMenu);
+            closeMenu.addEventListener('click', toggleMenu);
+
+            // Close menu when clicking on links
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', toggleMenu);
+            });
+        });
+    </script>
 </body>
 </html>

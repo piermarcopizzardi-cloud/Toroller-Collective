@@ -319,17 +319,17 @@ $events = [
                 padding-right: 40px;
             }
 
-            .events-hero-title {
-                font-size: 36px;
+            .events-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
-
+        
         @media (max-width: 768px) {
             .events-grid {
                 grid-template-columns: 1fr;
             }
         }
-
+        
         @media (max-width: 640px) {
             .header {
                 padding-left: 20px;
@@ -343,6 +343,8 @@ $events = [
             .hamburger-menu {
                 display: block;
                 color: #04CD00;
+                cursor: pointer;
+                z-index: 1001;
             }
 
             .events-hero,
@@ -350,14 +352,43 @@ $events = [
                 padding-left: 20px;
                 padding-right: 20px;
             }
+        }
 
-            .events-hero-title {
-                font-size: 28px;
-            }
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
 
-            .events-hero-description {
-                font-size: 16px;
-            }
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu .nav-link {
+            font-size: 24px;
+            padding: 12px;
+        }
+
+        .mobile-menu .auth-buttons {
+            flex-direction: column;
+            margin-top: 24px;
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            cursor: pointer;
+            color: #04CD00;
         }
     </style>
 </head>
@@ -404,6 +435,30 @@ $events = [
         </div>
     </div>
 
+    <div class="mobile-menu">
+        <div class="close-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="community.php">Community</a>
+        <a class="nav-link" href="shop.php">Shop</a>
+        <a class="nav-link active" href="eventi.php">Eventi</a>
+        
+        <div class="auth-buttons">
+            <?php if ($isLoggedIn): ?>
+            <div class="user-menu">
+                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                <a href="?logout=1" class="logout-btn">Logout</a>
+            </div>
+            <?php else: ?>
+            <a href="login.php" class="login-btn">Login</a>
+            <a href="registrazione.php" class="get-started-btn">Get started</a>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <div class="events-hero">
         <h1 class="events-hero-title">Eventi TorollerCollective</h1>
         <p class="events-hero-description">Partecipa ai nostri eventi per connetterti con altri appassionati, imparare nuove competenze e contribuire a rendere la nostra città più sostenibile.</p>
@@ -434,5 +489,27 @@ $events = [
             <?php endforeach; ?>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger-menu');
+            const closeMenu = document.querySelector('.close-menu');
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
+
+            function toggleMenu() {
+                mobileMenu.classList.toggle('active');
+                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+            }
+
+            hamburger.addEventListener('click', toggleMenu);
+            closeMenu.addEventListener('click', toggleMenu);
+
+            // Close menu when clicking on links
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', toggleMenu);
+            });
+        });
+    </script>
 </body>
 </html>

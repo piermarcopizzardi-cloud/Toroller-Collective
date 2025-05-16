@@ -839,6 +839,43 @@ if (isset($_GET['logout'])) {
                 gap: 20px;
             }
         }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu .nav-link {
+            font-size: 24px;
+            padding: 12px;
+        }
+
+        .mobile-menu .auth-buttons {
+            flex-direction: column;
+            margin-top: 24px;
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            cursor: pointer;
+            color: #04CD00;
+        }
     </style>
 </head>
 <body>
@@ -881,6 +918,30 @@ if (isset($_GET['logout'])) {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
+        </div>
+    </div>
+
+    <div class="mobile-menu">
+        <div class="close-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="community.php">Community</a>
+        <a class="nav-link active" href="shop.php">Shop</a>
+        <a class="nav-link" href="eventi.php">Eventi</a>
+        
+        <div class="auth-buttons">
+            <?php if ($isLoggedIn): ?>
+            <div class="user-menu">
+                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                <a href="?logout=1" class="logout-btn">Logout</a>
+            </div>
+            <?php else: ?>
+            <a href="login.php" class="login-btn">Login</a>
+            <a href="registrazione.php" class="get-started-btn">Get started</a>
+            <?php endif; ?>
         </div>
     </div>
     
@@ -1061,6 +1122,15 @@ if (isset($_GET['logout'])) {
             button.addEventListener('click', function() {
                 alert('Prodotto aggiunto al carrello!');
             });
+        });
+
+        // Toggle mobile menu
+        document.querySelector('.hamburger-menu').addEventListener('click', function() {
+            document.querySelector('.mobile-menu').classList.add('active');
+        });
+
+        document.querySelector('.close-menu').addEventListener('click', function() {
+            document.querySelector('.mobile-menu').classList.remove('active');
         });
     </script>
 </body>

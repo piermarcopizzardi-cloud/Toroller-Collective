@@ -20,6 +20,8 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     padding: 24px;
     margin-bottom: 24px;
+    width: 100%; /* Assicura che la card occupi l'intera larghezza disponibile */
+    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
 }
 
 .filter-title {
@@ -27,19 +29,32 @@
     font-size: 20px;
     font-weight: 700;
     margin-bottom: 16px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Improved text contrast */
 }
 
 .search-box {
     display: flex;
     margin-bottom: 16px;
+    position: relative;
+    width: 100%; /* Assicura che la search box occupi l'intera larghezza del contenitore */
+    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
+}
+
+.search-box.inside-card {
+    margin-bottom: 0; /* Rimuovi il margin-bottom per la barra all'interno della card */
+    display: flex;
+    align-items: stretch;
+    flex-wrap: nowrap;
 }
 
 .search-input {
-    flex-grow: 1;
+    flex: 1; /* Usa flex: 1 invece di flex-grow: 1 per un migliore controllo della larghezza */
     padding: 12px 16px;
     border: 1px solid #E5E7EB;
     border-radius: 8px 0 0 8px;
     font-size: 14px;
+    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
+    min-width: 0; /* Importante per evitare che l'input si espanda oltre il contenitore */
 }
 
 .search-button {
@@ -49,6 +64,22 @@
     border-radius: 0 8px 8px 0;
     padding: 0 16px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Impedisce al pulsante di ridursi */
+    min-width: 44px; /* Larghezza minima per una migliore accessibilità */
+}
+
+/* Mobile search container */
+.mobile-search-container {
+    display: none;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.mobile-search-form {
+    width: 100%;
 }
 
 .filter-group {
@@ -83,6 +114,11 @@
 .category-label {
     color: #4B5563;
     font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.category-label:hover {
+    color: #333; /* Enhanced hover feedback */
 }
 
 .price-range {
@@ -109,6 +145,13 @@
     color: #6B7280;
 }
 
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
 .filter-button {
     width: 100%;
     padding: 12px;
@@ -118,7 +161,7 @@
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 16px;
+    display: block; /* Assicura che il pulsante sia un blocco */
 }
 
 .reset-button {
@@ -130,13 +173,25 @@
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 8px;
+    display: block; /* Assicura che il pulsante sia un blocco */
+    box-sizing: border-box; /* Assicura che padding e bordo siano inclusi nella larghezza */
 }
 
 .products-section {
     flex-grow: 1;
 }
 
+.products-header-simple {
+    margin-bottom: 24px;
+}
+
+.products-count {
+    color: #6B7280;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+/* Stile conservato per retrocompatibilità ma non più usato */
 .products-header {
     display: flex;
     justify-content: space-between;
@@ -148,11 +203,6 @@
     color: #04CD00;
     font-size: 28px;
     font-weight: 700;
-}
-
-.products-count {
-    color: #6B7280;
-    font-size: 16px;
 }
 
 .sort-dropdown {
@@ -227,6 +277,12 @@
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-to-cart:hover {
+    background-color: #03b100;
+    transform: translateY(-2px); /* Added hover animation */
 }
 
 .no-products {
@@ -263,10 +319,20 @@
     align-items: center;
     justify-content: center;
     gap: 24px;
+    animation: fadeIn 0.3s ease; /* Added animation */
 }
 
 .mobile-menu.active {
     display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .mobile-menu .nav-link {
@@ -285,6 +351,12 @@
     right: 32px;
     cursor: pointer;
     color: #04CD00;
+    font-size: 24px;
+    transition: color 0.3s ease;
+}
+
+.close-menu:hover {
+    color: #03b100; /* Improved hover feedback */
 }
 
 .hamburger-menu {
@@ -325,6 +397,11 @@
     .nav-menu {
         display: none;
     }
+    
+    /* Mostra la barra di ricerca mobile */
+    .mobile-search-container {
+        display: block;
+    }
 }
 
 @media (max-width: 768px) {
@@ -342,5 +419,13 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
+    }
+    
+    .mobile-search-container .search-box {
+        margin-bottom: 10px;
+    }
+    
+    .mobile-filter-button {
+        margin-bottom: 10px;
     }
 }

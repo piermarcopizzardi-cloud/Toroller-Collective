@@ -21,6 +21,7 @@ body {
     font-size: 48px;
     font-weight: 800;
     margin-bottom: 24px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Improved text contrast */
 }
 
 .events-hero-description {
@@ -48,11 +49,16 @@ body {
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 550px; /* Altezza fissa per uniformità */
+    position: relative; /* Per posizionamento corretto degli elementi interni */
 }
 
 .event-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .event-image {
@@ -63,6 +69,16 @@ body {
 
 .event-content {
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 200px); /* Sottraiamo l'altezza dell'immagine */
+    justify-content: space-between; /* Distribuisce lo spazio verticalmente */
+}
+
+.event-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Permette a questa sezione di espandersi */
 }
 
 .event-date {
@@ -76,6 +92,11 @@ body {
     font-weight: 700;
     color: #333;
     margin-bottom: 12px;
+    transition: color 0.3s ease;
+}
+
+.event-title:hover {
+    color: #04CD00; /* Enhanced hover feedback */
 }
 
 .event-location {
@@ -88,8 +109,21 @@ body {
 
 .event-description {
     color: #4B5563;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     line-height: 1.5;
+    /* Compatibilità cross-browser per multi-line text truncation */
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    -webkit-line-clamp: 3;
+    -moz-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 4.5em; /* 3 linee × 1.5 line-height */
 }
 
 .event-footer {
@@ -98,6 +132,7 @@ body {
     align-items: center;
     padding-top: 16px;
     border-top: 1px solid #E5E7EB;
+    margin-top: auto; /* Spinge il footer verso il basso */
 }
 
 .event-time {
@@ -111,19 +146,38 @@ body {
     font-weight: 600;
 }
 
-.join-event-btn {
-    display: inline-block;
-    background-color: #04CD00;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    margin-top: 20px;
+.join-event-btn-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px; /* Spazio sopra il pulsante */
+    padding-top: 10px;
+    position: relative; /* Per garantire la posizione corretta */
 }
 
-.join-event-btn:hover {
+.join-event-btn {
+    display: block;
+    background-color: #04CD00;
+    color: white;
+    padding: 15px 20px; /* Padding aumentato */
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700; /* Font più bold */
+    text-align: center;
+    width: 100%; /* Occupa tutta la larghezza */
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(4, 205, 0, 0.25); /* Ombra più evidente */
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Maggiore spaziatura tra le lettere */
+    font-size: 16px;
+}
+
+.join-event-btn:hover, .join-event-btn:focus {
     background-color: #03b600;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(4, 205, 0, 0.35);
+    color: white;
+    outline: none; /* Rimuove il focus outline predefinito */
 }
 
 /* Responsive styles */

@@ -22,6 +22,7 @@
     font-size: 42px;
     font-weight: 800;
     margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Improved text contrast */
 }
 
 .forum-description {
@@ -163,12 +164,12 @@
     text-decoration: none;
     display: inline-block;
     margin-bottom: 30px;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .create-topic-btn:hover {
     background: #03b100;
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* Added hover animation */
 }
 
 .create-topic-form,
@@ -220,12 +221,12 @@
     border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .form-submit:hover {
     background: #03b100;
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* Added hover animation */
 }
 
 .login-prompt {
@@ -257,6 +258,11 @@
     color: #04CD00;
     text-decoration: none;
     font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb a:hover {
+    color: #03b100; /* Enhanced hover feedback */
 }
 
 .breadcrumb span {

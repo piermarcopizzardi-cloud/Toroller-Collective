@@ -215,20 +215,24 @@ $events = [
             <div class="event-card">
                 <img src="<?php echo htmlspecialchars($event['image']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>" class="event-image">
                 <div class="event-content">
-                    <div class="event-date"><?php echo date('d/m/Y', strtotime($event['date'])); ?></div>
-                    <h3 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h3>
-                    <div class="event-location">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 1a5 5 0 0 0-5 5c0 5 5 10 5 10s5-5 5-10a5 5 0 0 0-5-5zm0 7.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
-                        </svg>
-                        <?php echo htmlspecialchars($event['location']); ?>
+                    <div class="event-info">
+                        <div class="event-date"><?php echo date('d/m/Y', strtotime($event['date'])); ?></div>
+                        <h3 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h3>
+                        <div class="event-location">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 1a5 5 0 0 0-5 5c0 5 5 10 5 10s5-5 5-10a5 5 0 0 0-5-5zm0 7.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+                            </svg>
+                            <?php echo htmlspecialchars($event['location']); ?>
+                        </div>
+                        <p class="event-description"><?php echo htmlspecialchars($event['description']); ?></p>
+                        <div class="event-footer">
+                            <div class="event-time"><?php echo htmlspecialchars($event['time']); ?></div>
+                            <div class="event-participants"><?php echo htmlspecialchars($event['participants']); ?> partecipanti</div>
+                        </div>
                     </div>
-                    <p class="event-description"><?php echo htmlspecialchars($event['description']); ?></p>
-                    <div class="event-footer">
-                        <div class="event-time"><?php echo htmlspecialchars($event['time']); ?></div>
-                        <div class="event-participants"><?php echo htmlspecialchars($event['participants']); ?> partecipanti</div>
+                    <div class="join-event-btn-container">
+                        <a href="evento-dettaglio.php?id=<?php echo $event['id']; ?>" class="join-event-btn">Partecipa</a>
                     </div>
-                    <a href="#" class="join-event-btn">Partecipa all'evento</a>
                 </div>
             </div>
             <?php endforeach; ?>

@@ -325,6 +325,20 @@ if ($conn) {
     </div>
 
     <div class="shop-container">
+        <!-- Mobile search bar sempre visibile su mobile -->
+        <div class="mobile-search-container">
+            <form action="shop.php" method="GET" class="mobile-search-form">
+                <div class="search-box">
+                    <input type="text" name="search" placeholder="Cerca prodotti..." class="search-input" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    <button type="submit" class="search-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <button id="mobileFilterButton" class="mobile-filter-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;">
                 <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/>
@@ -336,7 +350,7 @@ if ($conn) {
             <form action="shop.php" method="GET">
                 <div class="filter-card">
                     <h3 class="filter-title">Cerca</h3>
-                    <div class="search-box">
+                    <div class="search-box inside-card">
                         <input type="text" name="search" placeholder="Cerca prodotti..." class="search-input" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
                         <button type="submit" class="search-button">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -382,25 +396,18 @@ if ($conn) {
                         </select>
                     </div>
                     
-                    <button type="submit" class="filter-button">Applica filtri</button>
-                    <a href="shop.php" class="reset-button">Resetta filtri</a>
+                    <div class="buttons-container">
+                        <button type="submit" class="filter-button">Applica filtri</button>
+                        <button type="button" class="reset-button" onclick="window.location.href='shop.php'">Resetta filtri</button>
+                    </div>
                 </div>
             </form>
         </div>
         
         <div class="products-section">
-            <div class="products-header">
-                <div>
-                    <h2 class="products-title">I nostri prodotti</h2>
-                    <p class="products-count"><?php echo count($filteredProducts); ?> prodotti trovati</p>
-                </div>
-                
-                <select id="mobileSortDropdown" class="sort-dropdown" onchange="window.location.href=this.value">
-                    <option value="shop.php?sort=name_asc<?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['category']) ? '&category=' . urlencode($_GET['category']) : ''; ?><?php echo isset($_GET['min_price']) ? '&min_price=' . urlencode($_GET['min_price']) : ''; ?><?php echo isset($_GET['max_price']) ? '&max_price=' . urlencode($_GET['max_price']) : ''; ?>" <?php echo (isset($_GET['sort']) && $_GET['sort'] === 'name_asc') ? 'selected' : ''; ?>>Nome (A-Z)</option>
-                    <option value="shop.php?sort=name_desc<?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['category']) ? '&category=' . urlencode($_GET['category']) : ''; ?><?php echo isset($_GET['min_price']) ? '&min_price=' . urlencode($_GET['min_price']) : ''; ?><?php echo isset($_GET['max_price']) ? '&max_price=' . urlencode($_GET['max_price']) : ''; ?>" <?php echo (isset($_GET['sort']) && $_GET['sort'] === 'name_desc') ? 'selected' : ''; ?>>Nome (Z-A)</option>
-                    <option value="shop.php?sort=price_asc<?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['category']) ? '&category=' . urlencode($_GET['category']) : ''; ?><?php echo isset($_GET['min_price']) ? '&min_price=' . urlencode($_GET['min_price']) : ''; ?><?php echo isset($_GET['max_price']) ? '&max_price=' . urlencode($_GET['max_price']) : ''; ?>" <?php echo (isset($_GET['sort']) && $_GET['sort'] === 'price_asc') ? 'selected' : ''; ?>>Prezzo (crescente)</option>
-                    <option value="shop.php?sort=price_desc<?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['category']) ? '&category=' . urlencode($_GET['category']) : ''; ?><?php echo isset($_GET['min_price']) ? '&min_price=' . urlencode($_GET['min_price']) : ''; ?><?php echo isset($_GET['max_price']) ? '&max_price=' . urlencode($_GET['max_price']) : ''; ?>" <?php echo (isset($_GET['sort']) && $_GET['sort'] === 'price_desc') ? 'selected' : ''; ?>>Prezzo (decrescente)</option>
-                </select>
+            <div class="products-header-simple">
+                <h2 class="products-title">I nostri prodotti</h2>
+                <p class="products-count"><?php echo count($filteredProducts); ?> prodotti trovati</p>
             </div>
             
             <?php if (count($filteredProducts) > 0): ?>
@@ -843,6 +850,19 @@ if ($conn) {
             <?php endif; ?>
             window.location.href = 'checkout.php';
         }
+
+        // Gestione dei filtri mobile
+        document.getElementById('mobileFilterButton').addEventListener('click', function() {
+            const filterSidebar = document.getElementById('filterSidebar');
+            filterSidebar.classList.toggle('active');
+            
+            // Aggiorna il testo del pulsante
+            if (filterSidebar.classList.contains('active')) {
+                this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>Nascondi filtri';
+            } else {
+                this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/></svg>Mostra filtri';
+            }
+        });
 
         // Chiudi il carrello quando si clicca fuori
         document.addEventListener('click', function(event) {

@@ -318,6 +318,11 @@ body {
     transform: scaleX(1);
 }
 
+.btn, button, .event-button {
+    border-radius: 8px;
+    /* ...existing code... */
+}
+
 /* Responsive styles */
 @media (max-width: 991px) {
     .header {

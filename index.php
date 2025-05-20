@@ -178,7 +178,7 @@ if ($conn) {
             <a href="registrazione.php" class="get-started-btn">Unisciti ora</a>
             <a href="login.php" class="login-btn">Accedi</a>
             <?php else: ?>
-            <a href="#community" class="get-started-btn">Esplora la community</a>
+            <a href="community.php" class="get-started-btn">Esplora la community</a>
             <?php endif; ?>
         </div>
     </div>

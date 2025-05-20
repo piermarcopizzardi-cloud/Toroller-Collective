@@ -670,3 +670,8 @@ a, button, input, select {
         margin-bottom: 10px;
     }
 }
+
+.btn, button, .add-to-cart, .view-details {
+    border-radius: 8px;
+    /* ...existing code... */
+}

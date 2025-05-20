@@ -277,3 +277,8 @@
 .view-event-btn:hover {
     text-decoration: underline;
 }
+
+.btn, button, .event-action {
+    border-radius: 8px;
+    /* ...existing code... */
+}

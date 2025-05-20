@@ -258,6 +258,11 @@ body {
     margin-bottom: 16px;
 }
 
+button, .btn, input[type="submit"], .action-button {
+    border-radius: 8px;
+    /* ...existing code... */
+}
+
 /* Responsive styles */
 @media (max-width: 991px) {
     .header {

@@ -518,3 +518,8 @@
         padding: 20px;
     }
 }
+
+.btn, button, .action-button {
+    border-radius: 8px;
+    /* ...existing code... */
+}

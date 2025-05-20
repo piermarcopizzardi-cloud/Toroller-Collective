@@ -1,3 +1,15 @@
+/* Importa gli stili base del sito */
+@import 'index.css';
+
+/* Variabili specifiche per la pagina evento */
+:root {
+    --primary-color: #04CD00;
+    --primary-hover: #03b600;
+    --text-color: #333;
+    --background-color: #f8f9fa;
+    --border-color: #ddd;
+}
+
 /* Stile per la pagina di dettaglio evento */
 .event-detail-container {
     max-width: 1200px;
@@ -15,7 +27,7 @@
 .back-button {
     display: inline-flex;
     align-items: center;
-    color: #333;
+    color: var(--text-color);
     font-weight: 500;
     text-decoration: none;
     transition: color 0.2s;
@@ -26,13 +38,13 @@
 }
 
 .back-button:hover {
-    color: #FF6B00;
+    color: var(--primary-color);
 }
 
 .event-title {
     font-size: 2.5rem;
     font-weight: 800;
-    color: #333;
+    color: var(--text-color);
     margin: 0;
 }
 
@@ -75,7 +87,7 @@
 }
 
 .event-info-card {
-    background-color: #f8f9fa;
+    background-color: var(--background-color);
     border-radius: 12px;
     padding: 25px;
     display: grid;
@@ -98,7 +110,7 @@
 .info-value {
     font-size: 1.1rem;
     font-weight: 500;
-    color: #333;
+    color: var(--text-color);
 }
 
 .event-description h2,
@@ -107,7 +119,7 @@
 .related-events h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #333;
+    color: var(--text-color);
     margin-bottom: 20px;
     position: relative;
 }
@@ -120,7 +132,7 @@
     display: block;
     width: 50px;
     height: 3px;
-    background-color: #FF6B00;
+    background-color: #04CD00 !important;
     margin-top: 10px;
 }
 
@@ -151,7 +163,7 @@
 .form-group select,
 .form-group textarea {
     padding: 12px 15px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.2s;
@@ -160,13 +172,13 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #FF6B00;
+    border-color: var(--primary-color);
     outline: none;
 }
 
 .registration-button {
-    background-color: #FF6B00;
-    color: white;
+    background-color: #04CD00 !important;
+    color: white !important;
     font-weight: 600;
     font-size: 1rem;
     padding: 14px 20px;
@@ -178,7 +190,7 @@
 }
 
 .registration-button:hover {
-    background-color: #e35f00;
+    background-color: #03b600 !important;
 }
 
 .instagram-links {
@@ -191,10 +203,10 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background-color: #f8f9fa;
+    background-color: var(--background-color);
     padding: 15px;
     border-radius: 8px;
-    color: #333;
+    color: var(--text-color);
     text-decoration: none;
     font-weight: 500;
     transition: all 0.2s;
@@ -217,7 +229,7 @@
 
 .related-event-card {
     display: flex;
-    background-color: #f8f9fa;
+    background-color: var(--background-color);
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s;
@@ -251,13 +263,13 @@
     font-size: 1rem;
     font-weight: 700;
     margin: 5px 0;
-    color: #333;
+    color: var(--text-color);
 }
 
 .view-event-btn {
     align-self: flex-start;
     font-size: 0.9rem;
-    color: #FF6B00;
+    color: #04CD00 !important;
     font-weight: 600;
     text-decoration: none;
 }

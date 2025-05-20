@@ -143,7 +143,7 @@ if (isset($_SESSION['registration_success'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrazione - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/auth.css" rel="stylesheet">
+    <link href="style/registrazione.css" rel="stylesheet">
 </head>
 <body>
     <div class="header">
@@ -225,85 +225,64 @@ if (isset($_SESSION['registration_success'])) {
     </div>
     
     <div class="main-content">
-        <div class="left-section">
-            <div class="main-heading">Unisciti alla nostra community</div>
-            
-            <div class="features">
-                <div class="feature">
-                    <div>
-                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_16_1289)">
-                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_16_1289">
-                                    <rect width="26" height="26" fill="white"></rect>
-                                </clipPath>
-                            </defs>
-                        </svg>
-                    </div>
-                    <div class="feature-text">La tua privacy e la nostra priorità</div>
-                </div>
-                
-                <div class="feature">
-                    <div>
-                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_16_1296)">
-                                <path d="M13 26C20.1799 26 26 20.1799 26 13C26 5.8201 20.1799 0 13 0C5.8201 0 0 5.8201 0 13C0 20.1799 5.8201 26 13 26Z" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" fill="#04CD00"></path>
-                                <path d="M7.11682 13.8405L10.4786 17.2023L18.8832 8.79773" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_16_1296">
-                                    <rect width="26" height="26" fill="white"></rect>
-                                </clipPath>
-                            </defs>
-                        </svg>
-                    </div>
-                    <div class="feature-text">utilizziamo sistemi di crittografia nel vostro rispetto</div>
-                </div>
-            </div>
-        </div>
-        
         <div class="registration-form-container">
+            <h1 class="main-heading">Unisciti alla nostra community</h1>
+            
             <form class="registration-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                 <?php if (!empty($error)): ?>
-                    <div class="error-message"><?php echo $error; ?></div>
+                    <div class="error-message">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="10" cy="10" r="10" fill="#FFE5E5"/>
+                            <path d="M10 5V11M10 13V15" stroke="#DC3545" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <?php echo $error; ?>
+                    </div>
                 <?php endif; ?>
                 
                 <?php if (!empty($success)): ?>
-                    <div class="success-message"><?php echo $success; ?></div>
+                    <div class="success-message">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="10" cy="10" r="10" fill="#E8F5E9"/>
+                            <path d="M6 10L9 13L14 7" stroke="#28A745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <?php echo $success; ?>
+                    </div>
                 <?php endif; ?>
                 
-                <div class="form-group">
-                    <label for="name" class="form-label">Nome</label>
-                    <input type="text" id="name" name="name" placeholder="Il tuo nome" class="form-input" value="<?php echo htmlspecialchars($name); ?>" required>
-                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Nome</label>
+                        <input type="text" id="name" name="name" placeholder="Il tuo nome" class="form-input" value="<?php echo htmlspecialchars($name); ?>" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="surname" class="form-label">Cognome</label>
-                    <input type="text" id="surname" name="surname" placeholder="Il tuo cognome" class="form-input" value="<?php echo htmlspecialchars($surname); ?>" required>
+                    <div class="form-group">
+                        <label for="surname" class="form-label">Cognome</label>
+                        <input type="text" id="surname" name="surname" placeholder="Il tuo cognome" class="form-input" value="<?php echo htmlspecialchars($surname); ?>" required>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="birthdate" class="form-label">Data di nascita</label>
-                    <input type="date" id="birthdate" name="birthdate" class="form-input" value="<?php echo htmlspecialchars($birthdate); ?>" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo htmlspecialchars($email); ?>" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birthdate" class="form-label">Data di nascita</label>
+                        <input type="date" id="birthdate" name="birthdate" class="form-input" value="<?php echo htmlspecialchars($birthdate); ?>" required>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="email" class="form-label">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo htmlspecialchars($email); ?>" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Almeno 8 caratteri" class="form-input" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password" class="form-label">Conferma Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Conferma la tua password" class="form-input" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Almeno 8 caratteri" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password" class="form-label">Conferma Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Conferma la tua password" class="form-input" required>
+                    </div>
                 </div>
                 
                 <button type="submit" class="submit-btn">Registrati</button>

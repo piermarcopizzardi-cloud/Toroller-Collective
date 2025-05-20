@@ -1,0 +1,430 @@
+/* Importa gli stili base del sito */
+@import 'index.css';
+
+/* Variabili specifiche per il login */
+:root {
+    --primary-color: #04CD00;
+    --primary-hover: #03b600;
+    --text-color: #333;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --background-color: #f8f9fa;
+    --input-border: #E5E7EB;
+    --input-focus: #80bdff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --focus-outline: rgba(4, 205, 0, 0.25);
+    --card-border-radius: 20px;
+    --text-secondary: #6B7280;
+}
+
+/* Animazione della linea verde */
+@keyframes expandLine {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+/* Layout principale con migliore organizzazione spaziale */
+.main-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    max-width: 1200px;
+    margin: 3rem auto 2rem;
+    padding: 0 2rem;
+    gap: 4rem;
+    position: relative;
+}
+
+/* Sezione sinistra con migliore gerarchia visiva */
+.left-section {
+    flex: 1;
+    padding-right: 4rem;
+    position: relative;
+}
+
+.main-heading {
+    font-size: 42px;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    color: var(--primary-color);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Features con migliore leggibilità */
+.features {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--card-border-radius);
+    box-shadow: 0 4px 6px var(--shadow-color);
+    border: 1px solid var(--input-border);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.features::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.features:hover::before {
+    transform: scaleX(1);
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 1px solid transparent;
+}
+
+.feature:hover {
+    transform: translateX(10px);
+    border-color: var(--input-border);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.feature:last-child {
+    margin-bottom: 0;
+}
+
+.feature-text {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Form con migliore usabilità e feedback visivo */
+.login-form-container {
+    flex: 1;
+    max-width: 450px;
+    background: white;
+    padding: 3rem;
+    border-radius: var(--card-border-radius);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    transition: all 0.3s ease;
+    border: 1px solid var(--input-border);
+    position: relative;
+    overflow: hidden;
+    height: fit-content;
+}
+
+.login-form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.login-form-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px var(--shadow-color);
+}
+
+.login-form-container:hover::before {
+    transform: scaleX(1);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-of-type {
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+}
+
+.form-input {
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--input-border);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: white;
+}
+
+.form-input:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(4, 205, 0, 0.02);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--focus-outline);
+    background-color: white;
+}
+
+.form-group:focus-within .form-label {
+    color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.form-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+    font-size: 0.95rem;
+}
+
+.form-footer {
+    margin-top: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--input-border);
+}
+
+.link-primary {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    position: relative;
+    padding-bottom: 2px;
+}
+
+.link-primary:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease;
+}
+
+.link-primary:hover:after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Button con feedback migliorato */
+.submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.125rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.5s ease;
+}
+
+.submit-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(4, 205, 0, 0.3);
+}
+
+.submit-btn:hover::before {
+    left: 100%;
+}
+
+.submit-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(4, 205, 0, 0.2);
+}
+
+.submit-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--focus-outline);
+}
+
+/* Messaggi di feedback migliorati */
+.error-message,
+.success-message {
+    padding: 1.25rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: messageSlide 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.error-message::before,
+.success-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+@keyframes messageSlide {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-message {
+    background-color: #FEF2F2;
+    border: 1px solid #FEE2E2;
+    color: var(--error-color);
+}
+
+.error-message::before {
+    background-color: var(--error-color);
+}
+
+.success-message {
+    background-color: #F0FDF4;
+    border: 1px solid #DCFCE7;
+    color: var(--success-color);
+}
+
+.success-message::before {
+    background-color: var(--success-color);
+}
+
+.error-message svg,
+.success-message svg {
+    flex-shrink: 0;
+}
+
+/* Design responsivo migliorato */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+        padding: 1.5rem;
+        margin-top: 4rem;
+        gap: 2rem;
+    }
+
+    .left-section {
+        padding-right: 0;
+        text-align: center;
+    }
+
+    .main-heading {
+        font-size: 2rem;
+    }
+
+    .login-form-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 2rem;
+    }
+
+    .feature {
+        justify-content: center;
+    }
+}
+
+/* Accessibilità migliorata */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .submit-btn:hover {
+        transform: none;
+    }
+    
+    .feature:hover {
+        transform: none;
+    }
+}
+
+/* Modalità alto contrasto */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-color: #008000;
+        --primary-hover: #006000;
+        --text-color: #000;
+        --input-border: #000;
+        --focus-outline: rgba(0, 128, 0, 0.5);
+    }
+
+    .form-input {
+        border-width: 2px;
+    }
+
+    .error-message,
+    .success-message {
+        border-width: 2px;
+    }
+}
+
+/* Focus visibile per navigazione da tastiera */
+*:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}

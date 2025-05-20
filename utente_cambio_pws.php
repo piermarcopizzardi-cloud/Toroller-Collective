@@ -114,9 +114,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cambia la tua password su TorollerCollective">
     <title>Cambio Password - TorollerCollective</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/auth.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="style/cambio_password.css" rel="stylesheet">
+    <link rel="icon" href="assets/logo1.jpg" type="image/jpeg">
 </head>
 <body>
     <div class="header">
@@ -221,36 +223,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <div class="profile-container">
-        <h2 class="profile-title">Modifica Password</h2>
+    <main class="profile-container">
+        <h1 class="profile-title">Modifica Password</h1>
         
         <?php if (!empty($error)): ?>
-            <div class="error-message"><?php echo $error; ?></div>
+            <div class="error-message" role="alert">
+                <span class="visually-hidden">Errore: </span>
+                <?php echo $error; ?>
+            </div>
         <?php endif; ?>
         
         <?php if (!empty($success)): ?>
-            <div class="success-message"><?php echo $success; ?></div>
+            <div class="success-message" role="alert">
+                <span class="visually-hidden">Successo: </span>
+                <?php echo $success; ?>
+            </div>
         <?php endif; ?>
 
-        <form method="POST" action="">
+        <form method="POST" action="" aria-labelledby="form-title">
+            <h2 id="form-title" class="visually-hidden">Form di cambio password</h2>
+            
             <div class="form-group">
-                <label class="form-label">Password Attuale</label>
-                <input type="password" name="current_password" class="form-input" required>
+                <label for="current-password" class="form-label">Password Attuale</label>
+                <input type="password" 
+                       id="current-password" 
+                       name="current_password" 
+                       class="form-input" 
+                       required 
+                       autocomplete="current-password"
+                       aria-required="true">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Nuova Password</label>
-                <input type="password" name="new_password" class="form-input" required>
+                <label for="new-password" class="form-label">Nuova Password</label>
+                <input type="password" 
+                       id="new-password" 
+                       name="new_password" 
+                       class="form-input" 
+                       required 
+                       autocomplete="new-password"
+                       aria-required="true"
+                       pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                       title="La password deve contenere almeno 8 caratteri, inclusi numeri, lettere maiuscole e minuscole">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Conferma Nuova Password</label>
-                <input type="password" name="confirm_password" class="form-input" required>
+                <label for="confirm-password" class="form-label">Conferma Nuova Password</label>
+                <input type="password" 
+                       id="confirm-password" 
+                       name="confirm_password" 
+                       class="form-input" 
+                       required
+                       autocomplete="new-password"
+                       aria-required="true">
             </div>
 
-            <button type="submit" class="submit-btn">Aggiorna Password</button>
+            <button type="submit" class="submit-btn">
+                Aggiorna Password
+            </button>
+
+            <div class="password-requirements">
+                <h3>Requisiti password:</h3>
+                <ul>
+                    <li>Minimo 8 caratteri</li>
+                    <li>Almeno una lettera maiuscola</li>
+                    <li>Almeno una lettera minuscola</li>
+                    <li>Almeno un numero</li>
+                </ul>
+            </div>
         </form>
-    </div>
+    </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

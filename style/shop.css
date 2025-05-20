@@ -1,6 +1,20 @@
 /* Base styles */
 @import 'index.css';
 
+/* Shared hover animation variables */
+:root {
+    --hover-transition: all 0.3s ease;
+    --hover-y-offset: -2px;
+    --hover-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    --input-hover-shadow: 0 0 0 3px rgba(4, 205, 0, 0.1);
+    --button-hover-bg: #03b100;
+}
+
+/* Global interactive element transitions */
+a, button, input, select {
+    transition: var(--hover-transition);
+}
+
 /* Shop specific styles */
 .shop-container {
     padding: 40px 110px;
@@ -20,8 +34,34 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     padding: 24px;
     margin-bottom: 24px;
-    width: 100%; /* Assicura che la card occupi l'intera larghezza disponibile */
-    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #E5E7EB;
+}
+
+.filter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+.filter-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.filter-card:hover::before {
+    transform: scaleX(1);
 }
 
 .filter-title {
@@ -38,6 +78,26 @@
     position: relative;
     width: 100%; /* Assicura che la search box occupi l'intera larghezza del contenitore */
     box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.search-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+.search-box:focus-within::before {
+    transform: scaleX(1);
 }
 
 .search-box.inside-card {
@@ -55,6 +115,17 @@
     font-size: 14px;
     box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
     min-width: 0; /* Importante per evitare che l'input si espanda oltre il contenitore */
+    transition: var(--hover-transition);
+}
+
+.search-input:hover {
+    border-color: #04CD00;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #04CD00;
+    box-shadow: var(--input-hover-shadow);
 }
 
 .search-button {
@@ -103,12 +174,29 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    transition: var(--hover-transition);
+    padding: 8px;
+    border-radius: 6px;
+    position: relative;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.category-item:hover {
+    background-color: #f3f4f6;
+    background: rgba(4, 205, 0, 0.05);
 }
 
 .category-checkbox {
     width: 18px;
     height: 18px;
     accent-color: #04CD00;
+    transition: var(--hover-transition);
+}
+
+.category-checkbox:hover {
+    transform: scale(1.1);
 }
 
 .category-label {
@@ -139,6 +227,17 @@
     border: 1px solid #E5E7EB;
     border-radius: 6px;
     font-size: 14px;
+    transition: var(--hover-transition);
+}
+
+.price-input:hover {
+    border-color: #04CD00;
+}
+
+.price-input:focus {
+    outline: none;
+    border-color: #04CD00;
+    box-shadow: var(--input-hover-shadow);
 }
 
 .price-separator {
@@ -162,6 +261,32 @@
     font-weight: 600;
     cursor: pointer;
     display: block; /* Assicura che il pulsante sia un blocco */
+    transition: var(--hover-transition);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.filter-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.filter-button:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(var(--hover-y-offset));
+    box-shadow: var(--hover-shadow);
+}
+
+.filter-button:hover::before {
+    transform: scaleX(1);
 }
 
 .reset-button {
@@ -175,6 +300,16 @@
     cursor: pointer;
     display: block; /* Assicura che il pulsante sia un blocco */
     box-sizing: border-box; /* Assicura che padding e bordo siano inclusi nella larghezza */
+    transition: var(--hover-transition);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.reset-button:hover {
+    background-color: #f3f4f6;
+    transform: translateY(var(--hover-y-offset));
+    border-color: #04CD00;
 }
 
 .products-section {
@@ -211,6 +346,18 @@
     border-radius: 8px;
     font-size: 14px;
     color: #4B5563;
+    transition: var(--hover-transition);
+    transition: all 0.3s ease;
+}
+
+.sort-dropdown:hover {
+    border-color: #04CD00;
+}
+
+.sort-dropdown:focus {
+    outline: none;
+    border-color: #04CD00;
+    box-shadow: var(--input-hover-shadow);
 }
 
 .products-grid {
@@ -219,16 +366,42 @@
     gap: 24px;
 }
 
+/* Card animations */
+@keyframes expandLine {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
 .product-card {
-    background-color: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    background: white;
+    border-radius: 20px;
     overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    border: 1px solid #E5E7EB;
+}
+
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
     transition: transform 0.3s ease;
+    transform-origin: center;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-card:hover::before {
+    transform: scaleX(1);
 }
 
 .product-image {
@@ -278,11 +451,33 @@
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: var(--hover-transition);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.add-to-cart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: center;
 }
 
 .add-to-cart:hover {
-    background-color: #03b100;
-    transform: translateY(-2px); /* Added hover animation */
+    background-color: var(--button-hover-bg);
+    transform: translateY(var(--hover-y-offset)); /* Added hover animation */
+    box-shadow: var(--hover-shadow);
+}
+
+.add-to-cart:hover::before {
+    transform: scaleX(1);
 }
 
 .no-products {
@@ -303,6 +498,13 @@
     font-weight: 600;
     cursor: pointer;
     margin-bottom: 16px;
+    transition: var(--hover-transition);
+}
+
+.mobile-filter-button:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(var(--hover-y-offset));
+    box-shadow: var(--hover-shadow);
 }
 
 /* Mobile menu styles */
@@ -335,9 +537,40 @@
     }
 }
 
+@keyframes expandLine {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
 .mobile-menu .nav-link {
     font-size: 24px;
     padding: 12px;
+    transition: var(--hover-transition);
+    position: relative;
+}
+
+.mobile-menu .nav-link:hover {
+    color: #04CD00;
+}
+
+.mobile-menu .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu .nav-link:hover::after {
+    transform: scaleX(1);
 }
 
 .mobile-menu .auth-buttons {
@@ -353,15 +586,23 @@
     color: #04CD00;
     font-size: 24px;
     transition: color 0.3s ease;
+    transition: var(--hover-transition);
 }
 
 .close-menu:hover {
     color: #03b100; /* Improved hover feedback */
+    transform: rotate(90deg);
 }
 
 .hamburger-menu {
     display: none;
     cursor: pointer;
+    transition: var(--hover-transition);
+}
+
+.hamburger-menu:hover {
+    transform: scale(1.1);
+    color: #04CD00;
 }
 
 /* Responsive styles */

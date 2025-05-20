@@ -1,6 +1,152 @@
 /* Base styles */
 @import 'index.css';
 
+/* Animazione linea verde */
+@keyframes expandLine {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+/* Forum Cards */
+.forum-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #E5E7EB;
+}
+
+.forum-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+}
+
+.forum-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.forum-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Post Container */
+.post-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.post-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.post-container:hover::before {
+    transform: scaleX(1);
+}
+
+/* Form Container */
+.form-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.form-container:hover::before {
+    transform: scaleX(1);
+}
+
+/* Form Elements */
+.form-input, .form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #04CD00;
+    box-shadow: 0 0 0 3px rgba(4, 205, 0, 0.1);
+}
+
+/* Submit Button */
+.submit-button {
+    background: #04CD00;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.submit-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.submit-button:hover {
+    background: #03b100;
+}
+
+.submit-button:hover::before {
+    transform: scaleX(1);
+}
+
 /* Community specific styles */
 .forum-container {
     max-width: 1200px;
@@ -41,17 +187,17 @@
 }
 
 .category-card {
-    background: #ffffff;
-    border: 1px solid #E5E7EB;
+    background: white;
     border-radius: 20px;
     padding: 30px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    text-decoration: none;
-    display: block;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #E5E7EB;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
 }
 
 .category-card::before {
@@ -64,6 +210,7 @@
     background: #04CD00;
     transform: scaleX(0);
     transition: transform 0.3s ease;
+    transform-origin: left;
 }
 
 .category-card:hover {

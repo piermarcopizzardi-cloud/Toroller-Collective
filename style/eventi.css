@@ -1,6 +1,27 @@
 /* Base styles */
 @import 'index.css';
 
+/* Card animations */
+@keyframes expandLine {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Eventi specific styles */
 body {
     width: 100%;
@@ -49,16 +70,36 @@ body {
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    border: 1px solid #E5E7EB;
     display: flex;
     flex-direction: column;
-    height: 550px; /* Altezza fissa per uniformità */
-    position: relative; /* Per posizionamento corretto degli elementi interni */
+    height: 550px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.event-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.6s ease;
+    transform-origin: center;
+    z-index: 2;
 }
 
 .event-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 15px rgba(4, 205, 0, 0.15);
+}
+
+.event-card:hover::before {
+    transform: scaleX(1);
 }
 
 .event-image {
@@ -67,18 +108,11 @@ body {
     object-fit: cover;
 }
 
-.event-content {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    height: calc(100% - 200px); /* Sottraiamo l'altezza dell'immagine */
-    justify-content: space-between; /* Distribuisce lo spazio verticalmente */
-}
-
 .event-info {
     display: flex;
     flex-direction: column;
     flex-grow: 1; /* Permette a questa sezione di espandersi */
+    padding: 1.5rem;
 }
 
 .event-date {
@@ -130,9 +164,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 16px;
+    padding: 1rem 1.5rem;
     border-top: 1px solid #E5E7EB;
     margin-top: auto; /* Spinge il footer verso il basso */
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    position: absolute;
+    bottom: 0;
 }
 
 .event-time {
@@ -147,37 +186,136 @@ body {
 }
 
 .join-event-btn-container {
-    display: flex;
-    justify-content: center;
+    margin-top: auto;
+    padding: 0 1.5rem 1rem;
     width: 100%;
-    margin-top: 20px; /* Spazio sopra il pulsante */
-    padding-top: 10px;
-    position: relative; /* Per garantire la posizione corretta */
+    box-sizing: border-box;
+    background: white;
 }
 
 .join-event-btn {
-    display: block;
-    background-color: #04CD00;
+    width: 100%;
+    padding: 12px 24px;
+    background: #04CD00;
     color: white;
-    padding: 15px 20px; /* Padding aumentato */
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 700; /* Font più bold */
-    text-align: center;
-    width: 100%; /* Occupa tutta la larghezza */
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 3px 6px rgba(4, 205, 0, 0.25); /* Ombra più evidente */
-    text-transform: uppercase;
-    letter-spacing: 1px; /* Maggiore spaziatura tra le lettere */
-    font-size: 16px;
+    position: relative;
+    overflow: hidden;
 }
 
-.join-event-btn:hover, .join-event-btn:focus {
-    background-color: #03b600;
+.join-event-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.join-event-btn:hover {
+    background: #03b100;
     transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(4, 205, 0, 0.35);
+    box-shadow: 0 4px 8px rgba(4, 205, 0, 0.2);
+}
+
+.join-event-btn:hover::before {
+    transform: translateX(100%);
+}
+
+.join-event-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(4, 205, 0, 0.2);
+}
+
+/* Form e input */
+.form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #04CD00;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.form-container:hover::before {
+    transform: scaleX(1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #04CD00;
+    box-shadow: 0 0 0 3px rgba(4, 205, 0, 0.1);
+}
+
+/* Bottoni */
+.submit-button {
+    background: #04CD00;
     color: white;
-    outline: none; /* Rimuove il focus outline predefinito */
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.submit-button:hover {
+    background: #03b100;
+}
+
+.submit-button:hover::before {
+    transform: scaleX(1);
 }
 
 /* Responsive styles */

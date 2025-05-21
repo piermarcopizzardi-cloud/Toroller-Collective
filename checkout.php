@@ -10,6 +10,9 @@ if (!$isLoggedIn) {
     exit();
 }
 
+// Stabilisci la connessione al database
+$conn = connetti('toroller');
+
 // Ottieni il contenuto del carrello
 $cartItems = [];
 $cartTotal = 0;
@@ -29,13 +32,9 @@ if ($conn) {
     }
 }
 
-if ($conn) {
-    mysqli_close($conn);
-}
-
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
-if ($isLoggedIn && $conn) {
+if ($isLoggedIn) {
     $email = mysqli_real_escape_string($conn, $_SESSION['email']);
     $query = "SELECT email FROM utente WHERE email = '$email'";
     $result = mysqli_query($conn, $query);
@@ -589,69 +588,63 @@ if ($isLoggedIn && $conn) {
         </div>
     </div>
 
-    <div class="checkout-container">
+    <main class="checkout-container">
         <div class="checkout-summary">
-            <h2 class="section-title">Riepilogo ordine</h2>
-            <?php foreach ($cartItems as $item): ?>
-            <div class="cart-item">
-                <div class="item-details">
-                    <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
-                    <span class="item-quantity">Quantità: <?php echo $item['quantita']; ?></span>
+            <h2 class="section-title">Riepilogo carrello</h2>
+            <?php if (empty($cartItems)): ?>
+                <p>Il tuo carrello è vuoto.</p>
+            <?php else: ?>
+                <?php foreach ($cartItems as $item): ?>
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
+                            <span class="item-quantity">Quantità: <?php echo htmlspecialchars($item['quantita']); ?></span>
+                        </div>
+                        <span class="item-price">€<?php echo number_format($item['price'] * $item['quantita'], 2); ?></span>
+                    </div>
+                <?php endforeach; ?>
+                <div class="cart-total">
+                    <span>Totale</span>
+                    <span>€<?php echo number_format($cartTotal, 2); ?></span>
                 </div>
-                <span class="item-price">€<?php echo number_format($item['price'] * $item['quantita'], 2, ',', '.'); ?></span>
-            </div>
-            <?php endforeach; ?>
-            <div class="cart-total">
-                <span>Totale</span>
-                <span>€<?php echo number_format($cartTotal, 2, ',', '.'); ?></span>
-            </div>
+            <?php endif; ?>
         </div>
 
         <div class="payment-section">
-            <h2 class="section-title">Metodo di pagamento</h2>
-            
-            <div class="payment-options">
-                <div class="payment-option selected" onclick="selectPaymentMethod('card')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </svg>
-                    <div>Carta di credito</div>
+            <h2 class="section-title">Pagamento</h2>                <div class="payment-options">
+                    <div class="payment-option selected">
+                        <img src="https://cdn-icons-png.flaticon.com/128/179/179457.png" alt="Credit Card" style="width: 24px; height: 24px;">
+                        <div>Carta di credito</div>
+                    </div>
+                    <div class="payment-option">
+                        <img src="https://cdn-icons-png.flaticon.com/128/174/174861.png" alt="PayPal" style="width: 24px; height: 24px;">
+                        <div>PayPal</div>
+                    </div>
                 </div>
-                <div class="payment-option" onclick="selectPaymentMethod('apple')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.5 1.32-.82 2.67-2.53 4.08zm-3.09-17.6c-.06 2.83 2.43 4.85 2.55 4.93-1.68 2.33-4.41 1.96-5.38 1.93C8.54 7.03 11.39 4 13.96 2.68z"/>
-                    </svg>
-                    <div>Apple Pay</div>
-                </div>
-            </div>
 
-            <form id="payment-form" class="payment-form">
+            <form class="payment-form">
                 <div class="form-group">
-                    <label class="form-label">Nome sulla carta</label>
-                    <input type="text" class="form-input" placeholder="Nome completo" required>
+                    <label class="form-label">Titolare carta</label>
+                    <input type="text" class="form-input" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Numero carta</label>
-                    <input type="text" class="form-input" placeholder="1234 5678 9012 3456" required>
+                    <input type="text" class="form-input" required pattern="[0-9]{16}">
                 </div>
-                
                 <div class="card-details">
                     <div class="form-group">
                         <label class="form-label">Data di scadenza</label>
-                        <input type="text" class="form-input" placeholder="MM/AA" required>
+                        <input type="month" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">CVV</label>
-                        <input type="text" class="form-input" placeholder="123" required>
+                        <input type="text" class="form-input" required pattern="[0-9]{3,4}">
                     </div>
                 </div>
-
-                <button type="submit" class="submit-button">Paga €<?php echo number_format($cartTotal, 2, ',', '.'); ?></button>
+                <button type="submit" class="submit-button">Completa l'acquisto</button>
             </form>
         </div>
-    </div>
+    </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

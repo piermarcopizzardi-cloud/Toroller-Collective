@@ -77,71 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // Gestione Prodotti
-if (isset($_POST['add_product'])) {
-    $tipologia = mysqli_real_escape_string($conn, $_POST['product_name']);
-    $prezzo = floatval($_POST['product_price']);
-    $descrizione = mysqli_real_escape_string($conn, $_POST['product_description']);
-    
-    // Gestione dell'upload dell'immagine
-    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === 0) {
-        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-        $filename = $_FILES['product_image']['name'];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        
-        if (in_array($ext, $allowed)) {
-            $target_dir = "assets/products/";
-            $new_filename = uniqid() . '.' . $ext;
-            $target_path = $target_dir . $new_filename;
-            
-            if (move_uploaded_file($_FILES['product_image']['tmp_name'], $target_path)) {
-                $query = "INSERT INTO prodotti (tipologia, prezzo, descrizione, immagine) VALUES (?, ?, ?, ?)";
-                $stmt = mysqli_prepare($conn, $query);
-                mysqli_stmt_bind_param($stmt, "sdss", $tipologia, $prezzo, $descrizione, $new_filename);
-                
-                if (mysqli_stmt_execute($stmt)) {
-                    $success = "Prodotto aggiunto con successo!";
-                } else {
-                    $error = "Errore nell'aggiunta del prodotto.";
-                }
-            } else {
-                $error = "Errore nel caricamento dell'immagine.";
-            }
-        } else {
-            $error = "Tipo di file non supportato.";
-        }
-    }
-}
-
-if (isset($_POST['delete_product'])) {
-    if (isset($_POST['product_id'])) {
-        $product_id = intval($_POST['product_id']);
-        
-        // Prima eliminiamo l'immagine
-        $query = "SELECT immagine FROM prodotti WHERE id = ?";
-        $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "i", $product_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        
-        if ($product = mysqli_fetch_assoc($result)) {
-            $image_path = "assets/products/" . $product['immagine'];
-            if (file_exists($image_path)) {
-                unlink($image_path);
-            }
-        }
-        
-        // Poi eliminiamo il prodotto dal database
-        $query = "DELETE FROM prodotti WHERE id = ?";
-        $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "i", $product_id);
-        
-        if (mysqli_stmt_execute($stmt)) {
-            $success = "Prodotto eliminato con successo!";
-        } else {
-            $error = "Errore nell'eliminazione del prodotto.";
-        }
-    }
-}
+// Gestione prodotti spostata in admin_actions.php
 
 // Gestione Utenti
 if (isset($_POST['delete_user'])) {
@@ -165,6 +101,106 @@ if (isset($_POST['delete_user'])) {
     }
 }
 
+// Aggiungiamo lo script per la gestione asincrona dei prodotti
+?>
+<script>
+function showMessage(message, isError = false) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${isError ? 'alert-danger' : 'alert-success'} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    document.querySelector('#messages').appendChild(alertDiv);
+    
+    // Rimuovi il messaggio dopo 5 secondi
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+function addProduct(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    formData.append('action', 'add_product');
+    
+    fetch('admin_actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            // Aggiungi il nuovo prodotto alla tabella
+            const productsTable = document.querySelector('#productsTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.id = `product-${data.product.id}`;
+            newRow.innerHTML = `
+                <td>${data.product.tipologia}</td>
+                <td>${data.product.prezzo}</td>
+                <td>${data.product.quantita}</td>
+                <td>${data.product.colore}</td>
+                <td><img src="assets/products/${data.product.immagine}" height="50"></td>
+                <td>${data.product.descrizione}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(${data.product.id})">
+                        <i class="fas fa-trash"></i> Elimina
+                    </button>
+                </td>
+            `;
+            productsTable.appendChild(newRow);
+            form.reset();
+        } else {
+            showMessage(data.error, true);
+        }
+    })
+    .catch(error => {
+        showMessage('Si è verificato un errore durante l\'aggiunta del prodotto', true);
+        console.error('Error:', error);
+    });
+}
+
+function deleteProduct(id) {
+    if (!confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'delete_product');
+    formData.append('id', id);
+    
+    fetch('admin_actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            // Rimuovi la riga dalla tabella
+            document.querySelector(`#product-${id}`).remove();
+        } else {
+            showMessage(data.error, true);
+        }
+    })
+    .catch(error => {
+        showMessage('Si è verificato un errore durante l\'eliminazione del prodotto', true);
+        console.error('Error:', error);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Aggiungi validazione al form dei prodotti
+    const productForm = document.querySelector('#productForm');
+    if (productForm) {
+        productForm.addEventListener('submit', addProduct);
+    }
+});
+</script>
+<?php
 // Gestione Eventi
 if (isset($_POST['add_event'])) {
     $titolo = mysqli_real_escape_string($conn, $_POST['event_title']);
@@ -497,53 +533,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <button type="submit" name="change_password" class="submit-btn">Cambia Password</button>
                 </form>
             </div>
-        </div>
-
-        <!-- Products Section -->
+        </div>            <!-- Products Section -->
         <div class="admin-section" id="productsSection">
             <h2>Gestione Prodotti</h2>
             
             <!-- Add Product Form -->
             <div class="form-section">
                 <h3>Aggiungi Nuovo Prodotto</h3>
-                <form method="POST" action="" enctype="multipart/form-data">
+                <div id="messages"></div>
+                <form id="productForm" class="needs-validation" enctype="multipart/form-data" novalidate>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Tipologia</label>
-                            <input type="text" name="product_name" class="form-input" required>
+                            <input type="text" name="tipologia" class="form-input" required>
+                            <div class="invalid-feedback">
+                                La tipologia è obbligatoria
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Prezzo</label>
-                            <input type="number" step="0.01" name="product_price" class="form-input" required>
+                            <input type="number" step="0.01" min="0" name="prezzo" class="form-input" required>
+                            <div class="invalid-feedback">
+                                Inserisci un prezzo valido
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quantità</label>
+                            <input type="number" min="0" name="quantita" class="form-input" required>
+                            <div class="invalid-feedback">
+                                La quantità è obbligatoria
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Colore</label>
+                            <input type="text" name="colore" class="form-input" required>
+                            <div class="invalid-feedback">
+                                Il colore è obbligatorio
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Descrizione</label>
-                            <textarea name="product_description" class="form-textarea" required></textarea>
+                            <textarea name="descrizione" class="form-textarea" required></textarea>
+                            <div class="invalid-feedback">
+                                La descrizione è obbligatoria
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Immagine</label>
-                            <input type="file" name="product_image" class="form-input" required>
+                            <input type="file" name="immagine" class="form-input" accept="image/*" required>
+                            <div class="invalid-feedback">
+                                L'immagine è obbligatoria
+                            </div>
                         </div>
                     </div>
-                    <button type="submit" name="add_product" class="submit-btn">Aggiungi Prodotto</button>
+                    <button type="submit" class="submit-btn">Aggiungi Prodotto</button>
                 </form>
             </div>
 
             <!-- Product List -->
             <div class="data-section">
                 <h3>Lista Prodotti</h3>
-                <form method="POST" action="">
-                    <table class="data-table">
+                <div class="table-responsive">
+                    <table id="productsTable" class="data-table">
                         <thead>
                             <tr>
-                                <th>Seleziona</th>
-                                <th>ID</th>
                                 <th>Tipologia</th>
                                 <th>Prezzo</th>
+                                <th>Quantità</th>
+                                <th>Colore</th>
+                                <th>Immagine</th>
+                                <th>Descrizione</th>
                                 <th>Azioni</th>
                             </tr>
                         </thead>
@@ -553,22 +618,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $products_result = mysqli_query($conn, $products_query);
                             while ($product = mysqli_fetch_assoc($products_result)): 
                             ?>
-                            <tr>
-                                <td><input type="radio" name="product_id" value="<?php echo $product['id']; ?>"></td>
-                                <td><?php echo $product['id']; ?></td>
+                            <tr id="product-<?php echo $product['id']; ?>">
                                 <td><?php echo htmlspecialchars($product['tipologia']); ?></td>
                                 <td>€<?php echo number_format($product['prezzo'], 2, ',', '.'); ?></td>
+                                <td><?php echo htmlspecialchars($product['quantita']); ?></td>
+                                <td><?php echo htmlspecialchars($product['colore']); ?></td>
+                                <td><img src="assets/products/<?php echo htmlspecialchars($product['immagine']); ?>" height="50" alt="<?php echo htmlspecialchars($product['tipologia']); ?>"></td>
+                                <td><?php echo htmlspecialchars($product['descrizione']); ?></td>
                                 <td>
-                                    <div class="action-buttons">
-                                        <button type="button" class="edit-btn" onclick="editProduct(<?php echo $product['id']; ?>)">Modifica</button>
-                                    </div>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(<?php echo $product['id']; ?>)">
+                                        <i class="fas fa-trash"></i> Elimina
+                                    </button>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
-                    <button type="submit" name="delete_product" class="delete-btn">Elimina Selezionato</button>
-                </form>
+                </div>
             </div>
         </div>
 

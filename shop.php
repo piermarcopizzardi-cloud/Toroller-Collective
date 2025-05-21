@@ -143,8 +143,8 @@ if ($conn) {
                 'name' => $row['tipologia'],
                 'price' => $row['prezzo'],
                 'category' => $row['colore'],
-                'image' => 'assets/product' . $row['id'] . '.jpg',
-                'description' => 'Prodotto ' . $row['tipologia'] . ' di colore ' . $row['colore']
+                'image' => 'assets/products/' . $row['immagine'],
+                'description' => $row['descrizione'] ?: 'Prodotto ' . $row['tipologia'] . ' di colore ' . $row['colore']
             ];
         }
     }

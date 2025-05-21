@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Creato il: Mag 13, 2025 alle 18:22
+-- Creato il: Mag 21, 2025 alle 16:58
 -- Versione del server: 10.4.28-MariaDB
 -- Versione PHP: 8.2.4
 
@@ -34,6 +34,13 @@ CREATE TABLE `carrello` (
   `quantita` int(11) NOT NULL DEFAULT 1,
   `data_aggiunta` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dump dei dati per la tabella `carrello`
+--
+
+INSERT INTO `carrello` (`id`, `email_utente`, `id_prodotto`, `quantita`, `data_aggiunta`) VALUES
+(32, 'ammok@gmail.com', 10, 2, '2025-05-21 14:01:34');
 
 -- --------------------------------------------------------
 
@@ -71,13 +78,6 @@ CREATE TABLE `dettagli_ordine` (
   `prezzo_unitario` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dump dei dati per la tabella `dettagli_ordine`
---
-
-INSERT INTO `dettagli_ordine` (`id`, `id_ordine`, `id_prodotto`, `quantita`, `prezzo_unitario`) VALUES
-(1, 1, 1, 2, 49.99);
-
 -- --------------------------------------------------------
 
 --
@@ -102,6 +102,77 @@ INSERT INTO `eventi` (`id`, `titolo`, `descrizione`, `luogo`, `data`) VALUES
 (3, 'Educazione stradale', 'Corsi di educazione stradale per ciclisti ', 'Parco Pertini, Settimo-Torinese ', '2025-04-27'),
 (4, 'Future Parade', 'Parata Toroller x Fridays For Future ', 'Torino', '2025-06-14'),
 (5, 'Roller Dancing', 'Serata danzante sui pattini', 'Settimo-Torinese ', '2025-06-28');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `forum_categories`
+--
+
+CREATE TABLE `forum_categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dump dei dati per la tabella `forum_categories`
+--
+
+INSERT INTO `forum_categories` (`id`, `name`, `description`, `created_at`) VALUES
+(1, 'Generale', 'Discussioni generali sulla community', '2025-05-13 18:44:49'),
+(2, 'Eventi', 'Discussioni sugli eventi passati e futuri', '2025-05-13 18:44:49'),
+(3, 'Prodotti', 'Discussioni tecniche e consigli', '2025-05-13 18:44:49');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `forum_replies`
+--
+
+CREATE TABLE `forum_replies` (
+  `id` int(11) NOT NULL,
+  `topic_id` int(11) DEFAULT NULL,
+  `user_email` varchar(255) DEFAULT NULL,
+  `content` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dump dei dati per la tabella `forum_replies`
+--
+
+INSERT INTO `forum_replies` (`id`, `topic_id`, `user_email`, `content`, `created_at`) VALUES
+(1, 1, 'marco@gmail.com', 'bo frate , sono divertenti tanto per cominciare ', '2025-05-13 18:45:33'),
+(2, 1, 'ammok@gmail.com', 'dhdjghfhj', '2025-05-13 18:53:03'),
+(3, 2, 'ammok@gmail.com', 'hgfghfhj', '2025-05-13 18:53:43'),
+(4, 1, 'ammok@gmail.com', 'loool\r\n', '2025-05-19 18:06:55'),
+(5, 1, 'piermarcopizzardi@outlook.com', 'servono ad allenare gambe glutei e addome', '2025-05-20 14:48:27');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `forum_topics`
+--
+
+CREATE TABLE `forum_topics` (
+  `id` int(11) NOT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `user_email` varchar(255) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dump dei dati per la tabella `forum_topics`
+--
+
+INSERT INTO `forum_topics` (`id`, `category_id`, `user_email`, `title`, `content`, `created_at`) VALUES
+(1, 2, 'marco@gmail.com', 'pattini', 'a che cazzo servono i pattini ?', '2025-05-13 18:45:17'),
+(2, 1, 'ammok@gmail.com', 'bici da corsa o elettrica ?', 'non so cosa fare aiutooo', '2025-05-13 18:53:36'),
+(3, 1, 'piermarcopizzardi@outlook.com', 'marca di pattini migliore', 'secondo voi su quali pattini dovrei orientarmi ? considerando di non voler spendere piu di 200£?', '2025-05-20 12:34:50');
 
 -- --------------------------------------------------------
 
@@ -133,22 +204,19 @@ INSERT INTO `ordini` (`id`, `email_utente`, `data_ordine`, `totale`, `stato`) VA
 CREATE TABLE `prodotti` (
   `id` int(11) NOT NULL,
   `tipologia` varchar(50) NOT NULL,
-  `prezzo` int(11) NOT NULL,
-  `quantità` int(11) NOT NULL,
-  `colore` varchar(50) NOT NULL
+  `prezzo` decimal(10,2) NOT NULL,
+  `quantita` int(11) NOT NULL,
+  `colore` varchar(50) NOT NULL,
+  `immagine` varchar(255) DEFAULT NULL,
+  `descrizione` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dump dei dati per la tabella `prodotti`
 --
 
-INSERT INTO `prodotti` (`id`, `tipologia`, `prezzo`, `quantità`, `colore`) VALUES
-(1, 'maglietta', 20, 23, 'nero'),
-(2, 'pantaloni', 35, 25, 'bianco'),
-(3, 'maglietta', 20, 25, 'bianco'),
-(4, 'pantaloni', 35, 25, 'nero'),
-(5, 'berretto', 12, 25, 'nero'),
-(6, 'berretto', 12, 25, 'bianco');
+INSERT INTO `prodotti` (`id`, `tipologia`, `prezzo`, `quantita`, `colore`, `immagine`, `descrizione`) VALUES
+(10, 'LOL', 22.00, 1, 'NERO', '682dda109bbf1.png', NULL);
 
 -- --------------------------------------------------------
 
@@ -162,19 +230,24 @@ CREATE TABLE `utente` (
   `email` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
   `data_nascita` date NOT NULL,
-  `amministratore` tinyint(1) NOT NULL DEFAULT 0
+  `amministratore` tinyint(1) NOT NULL DEFAULT 0,
+  `google_id` varchar(255) DEFAULT NULL,
+  `facebook_id` varchar(255) DEFAULT NULL,
+  `apple_id` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dump dei dati per la tabella `utente`
 --
 
-INSERT INTO `utente` (`nome`, `cognome`, `email`, `password`, `data_nascita`, `amministratore`) VALUES
-('admin1', 'admin1', 'admin1@gmail.com', 'sucasuca', '2024-10-16', 1),
-('ammok', 'ammok', 'ammok@gmail.com', '$2y$10$QLLaKB3zBu8OXszr8.K9QuhEfb7zHY91iN/KMSK2Gr42I7PDPUNgC', '2025-05-17', 1),
-('bastardo', 'fillip di puttana', 'bastardoadmin@gmail.com', 'bastardodiunadmin', '2025-05-20', 1),
-('elisa', 'poujol', 'elisa.poujol@gmail.com', '$2y$10$35VUBLNp5GvCNUfEWdybGeRizpSejqMeZdSzDDkS.FiwiIg7EO8Yi', '1988-02-17', 0),
-('giulia', 'cammarata', 'giulia@gmail.com', '$2y$10$ntfp5E8ep7tucoavNyZYXekk5RJiiPPwGuTZ06D3dfd/BF0tCYtkS', '2000-02-03', 0);
+INSERT INTO `utente` (`nome`, `cognome`, `email`, `password`, `data_nascita`, `amministratore`, `google_id`, `facebook_id`, `apple_id`) VALUES
+('admin1', 'admin1', 'admin1@gmail.com', 'sucasuca', '2024-10-16', 1, NULL, NULL, NULL),
+('ammok', 'ammok', 'ammok@gmail.com', '$2y$10$QLLaKB3zBu8OXszr8.K9QuhEfb7zHY91iN/KMSK2Gr42I7PDPUNgC', '2025-05-17', 1, NULL, NULL, NULL),
+('bastardo', 'fillip di puttana', 'bastardoadmin@gmail.com', 'bastardodiunadmin', '2025-05-20', 1, NULL, NULL, NULL),
+('elisa', 'poujol', 'elisa.poujol@gmail.com', '$2y$10$35VUBLNp5GvCNUfEWdybGeRizpSejqMeZdSzDDkS.FiwiIg7EO8Yi', '1988-02-17', 0, NULL, NULL, NULL),
+('giulia', 'cammarata', 'giulia@gmail.com', '$2y$10$ntfp5E8ep7tucoavNyZYXekk5RJiiPPwGuTZ06D3dfd/BF0tCYtkS', '2000-02-03', 0, NULL, NULL, NULL),
+('marco', 'marco', 'marco@gmail.com', '$2y$10$PlRoa1ssw28WTZxCx9MvSeizMU9GOQlIlUj8tksEF8DmkkgtkPuDa', '2025-05-15', 0, NULL, NULL, NULL),
+('piermarco', 'pizzardi', 'piermarcopizzardi@outlook.com', '$2y$10$R6exAyljlz31owMzfdKyE.qjgADuCZG6NYrVpaHMjhOR1xqFg/Z..', '2002-12-03', 0, NULL, NULL, NULL);
 
 --
 -- Indici per le tabelle scaricate
@@ -209,6 +282,28 @@ ALTER TABLE `eventi`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indici per le tabelle `forum_categories`
+--
+ALTER TABLE `forum_categories`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indici per le tabelle `forum_replies`
+--
+ALTER TABLE `forum_replies`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `topic_id` (`topic_id`),
+  ADD KEY `user_email` (`user_email`);
+
+--
+-- Indici per le tabelle `forum_topics`
+--
+ALTER TABLE `forum_topics`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `category_id` (`category_id`),
+  ADD KEY `user_email` (`user_email`);
+
+--
 -- Indici per le tabelle `ordini`
 --
 ALTER TABLE `ordini`
@@ -225,7 +320,10 @@ ALTER TABLE `prodotti`
 -- Indici per le tabelle `utente`
 --
 ALTER TABLE `utente`
-  ADD PRIMARY KEY (`email`);
+  ADD PRIMARY KEY (`email`),
+  ADD KEY `idx_google_id` (`google_id`),
+  ADD KEY `idx_facebook_id` (`facebook_id`),
+  ADD KEY `idx_apple_id` (`apple_id`);
 
 --
 -- AUTO_INCREMENT per le tabelle scaricate
@@ -235,7 +333,7 @@ ALTER TABLE `utente`
 -- AUTO_INCREMENT per la tabella `carrello`
 --
 ALTER TABLE `carrello`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT per la tabella `comunity`
@@ -256,6 +354,24 @@ ALTER TABLE `eventi`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT per la tabella `forum_categories`
+--
+ALTER TABLE `forum_categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT per la tabella `forum_replies`
+--
+ALTER TABLE `forum_replies`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT per la tabella `forum_topics`
+--
+ALTER TABLE `forum_topics`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT per la tabella `ordini`
 --
 ALTER TABLE `ordini`
@@ -265,7 +381,7 @@ ALTER TABLE `ordini`
 -- AUTO_INCREMENT per la tabella `prodotti`
 --
 ALTER TABLE `prodotti`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Limiti per le tabelle scaricate
@@ -284,6 +400,20 @@ ALTER TABLE `carrello`
 ALTER TABLE `dettagli_ordine`
   ADD CONSTRAINT `dettagli_ordine_ibfk_1` FOREIGN KEY (`id_ordine`) REFERENCES `ordini` (`id`),
   ADD CONSTRAINT `dettagli_ordine_ibfk_2` FOREIGN KEY (`id_prodotto`) REFERENCES `prodotti` (`id`);
+
+--
+-- Limiti per la tabella `forum_replies`
+--
+ALTER TABLE `forum_replies`
+  ADD CONSTRAINT `forum_replies_ibfk_1` FOREIGN KEY (`topic_id`) REFERENCES `forum_topics` (`id`),
+  ADD CONSTRAINT `forum_replies_ibfk_2` FOREIGN KEY (`user_email`) REFERENCES `utente` (`email`);
+
+--
+-- Limiti per la tabella `forum_topics`
+--
+ALTER TABLE `forum_topics`
+  ADD CONSTRAINT `forum_topics_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `forum_categories` (`id`),
+  ADD CONSTRAINT `forum_topics_ibfk_2` FOREIGN KEY (`user_email`) REFERENCES `utente` (`email`);
 
 --
 -- Limiti per la tabella `ordini`

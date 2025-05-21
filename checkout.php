@@ -13,6 +13,18 @@ if (!$isLoggedIn) {
 // Stabilisci la connessione al database
 $conn = connetti('toroller');
 
+// Gestione rimozione dal carrello
+if (isset($_POST['remove_from_cart']) && $isLoggedIn) {
+    $cartItemId = (int)$_POST['cart_item_id'];
+    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
+    
+    mysqli_query($conn, "DELETE FROM carrello WHERE id = $cartItemId AND email_utente = '$email'");
+    
+    // Reindirizza per evitare il riinvio del form
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
 // Ottieni il contenuto del carrello
 $cartItems = [];
 $cartTotal = 0;
@@ -212,6 +224,27 @@ if ($isLoggedIn) {
         .item-price {
             font-weight: 600;
             color: #04CD00;
+            margin-right: 10px;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .remove-item {
+            background: none;
+            border: none;
+            color: #FF0000;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-item:hover {
+            transform: scale(1.2);
+            opacity: 0.8;
         }
 
         .cart-total {
@@ -600,7 +633,13 @@ if ($isLoggedIn) {
                             <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
                             <span class="item-quantity">Quantità: <?php echo htmlspecialchars($item['quantita']); ?></span>
                         </div>
-                        <span class="item-price">€<?php echo number_format($item['price'] * $item['quantita'], 2); ?></span>
+                        <div class="item-actions">
+                            <span class="item-price">€<?php echo number_format($item['price'] * $item['quantita'], 2); ?></span>
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="cart_item_id" value="<?php echo $item['id']; ?>">
+                                <button type="submit" name="remove_from_cart" class="remove-item">&times;</button>
+                            </form>
+                        </div>
                     </div>
                 <?php endforeach; ?>
                 <div class="cart-total">

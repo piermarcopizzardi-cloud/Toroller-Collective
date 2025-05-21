@@ -132,6 +132,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
 
+            case 'add_event':
+                $titolo = $_POST['titolo'] ?? '';
+                $data = $_POST['data'] ?? '';
+                $descrizione = $_POST['descrizione'] ?? '';
+                $luogo = $_POST['luogo'] ?? '';
+                
+                if (empty($titolo) || empty($data) || empty($descrizione) || empty($luogo)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Tutti i campi sono obbligatori']);
+                    exit;
+                }
+                
+                // Query di inserimento semplice
+                $query = "INSERT INTO eventi (titolo, data, descrizione, luogo) VALUES (?, ?, ?, ?)";
+                $stmt = mysqli_prepare($conn, $query);
+                mysqli_stmt_bind_param($stmt, "ssss", $titolo, $data, $descrizione, $luogo);
+                
+                if (mysqli_stmt_execute($stmt)) {
+                    $id = mysqli_insert_id($conn);
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Evento aggiunto con successo',
+                        'event' => [
+                            'id' => $id,
+                            'titolo' => $titolo,
+                            'data' => $data,
+                            'descrizione' => $descrizione,
+                            'luogo' => $luogo
+                        ]
+                    ]);
+                } else {
+                    error_log("Errore SQL: " . mysqli_error($conn));
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Errore nell\'aggiunta dell\'evento: ' . mysqli_error($conn)]);
+                }
+                break;
+
+            case 'delete_event':
+                if (isset($_POST['event_id'])) {
+                    $event_id = intval($_POST['event_id']);
+                    
+                    // Elimina l'evento
+                    $query = "DELETE FROM eventi WHERE id = ?";
+                    $stmt = mysqli_prepare($conn, $query);
+                    mysqli_stmt_bind_param($stmt, "i", $event_id);
+                    
+                    if (mysqli_stmt_execute($stmt)) {
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Evento eliminato con successo'
+                        ]);
+                    } else {
+                        http_response_code(500);
+                        echo json_encode(['error' => 'Errore nell\'eliminazione dell\'evento: ' . mysqli_error($conn)]);
+                    }
+                } else {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'ID evento mancante']);
+                }
+                break;
+
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Azione non valida']);
@@ -145,3 +206,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Metodo non permesso']);
 }
+
+mysqli_close($conn);

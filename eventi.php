@@ -53,43 +53,31 @@ if ($isLoggedIn && $conn) {
     }
 }
 
+// Recupera gli eventi dal database
+$events = [];
 if ($conn) {
+    $events_query = "SELECT * FROM eventi ORDER BY data ASC";
+    $events_result = mysqli_query($conn, $events_query);
+
+    if ($events_result) {
+        while ($event = mysqli_fetch_assoc($events_result)) {
+            $events[] = [
+                'id' => $event['id'],
+                'title' => $event['titolo'],
+                'date' => $event['data'],
+                'location' => $event['luogo'],
+                'description' => $event['descrizione'],
+                'image' => 'assets/community-image.jpg',
+                'time' => '19:00 - 22:00',
+                'participants' => 100
+            ];
+        }
+    } else {
+        error_log("Errore query eventi: " . mysqli_error($conn));
+    }
+    
     mysqli_close($conn);
 }
-
-// Array di eventi di esempio
-$events = [
-    [
-        'id' => 1,
-        'title' => 'Bike To School Day 2025',
-        'date' => '2025-05-20',
-        'location' => 'Piazza Castello, Torino',
-        'description' => 'Una giornata dedicata alla promozione della mobilità sostenibile nelle scuole. Partecipa con la tua bici e unisciti a centinaia di studenti per sensibilizzare sull\'importanza del trasporto eco-friendly.',
-        'image' => 'assets/hero-image.jpg',
-        'time' => '08:00 - 17:00',
-        'participants' => 250
-    ],
-    [
-        'id' => 2,
-        'title' => 'Workshop: Sicurezza Stradale',
-        'date' => '2025-06-15',
-        'location' => 'Parco del Valentino, Torino',
-        'description' => 'Workshop pratico sulla sicurezza stradale e le migliori pratiche per ciclisti urbani. Esperti del settore condivideranno consigli e tecniche per pedalare in città in modo sicuro.',
-        'image' => 'assets/community-image.jpg',
-        'time' => '14:30 - 18:30',
-        'participants' => 100
-    ],
-    [
-        'id' => 3,
-        'title' => 'Critical Mass Torino',
-        'date' => '2025-07-01',
-        'location' => 'Piazza San Carlo, Torino',
-        'description' => 'Unisciti alla Critical Mass mensile di Torino. Un\'occasione per pedalare insieme e promuovere l\'uso della bicicletta come mezzo di trasporto sostenibile in città.',
-        'image' => 'assets/product1.jpg',
-        'time' => '19:00 - 22:00',
-        'participants' => 500
-    ]
-];
 ?>
 
 <!DOCTYPE html>

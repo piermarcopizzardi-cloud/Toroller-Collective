@@ -28,6 +28,8 @@ try {
     }
 } catch (Exception $e) {
     error_log("Errore database: " . $e->getMessage());
+    header("Location: eventi.php?error=db");
+    exit();
 }
 
 // Ottieni le informazioni dell'utente se è loggato
@@ -45,96 +47,54 @@ if ($isLoggedIn && $conn) {
         $userEmail = $user['email'];
         $userName = $user['nome'];
     }
-
-    // Ottieni il contenuto del carrello per l'utente loggato
-    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
-                 FROM carrello c 
-                 JOIN prodotti p ON c.id_prodotto = p.id 
-                 WHERE c.email_utente = '$email'";
-    $cartResult = mysqli_query($conn, $cartQuery);
-    
-    if ($cartResult) {
-        while ($row = mysqli_fetch_assoc($cartResult)) {
-            $cartItems[] = $row;
-            $cartTotal += $row['price'] * $row['quantita'];
-        }
-    }
 }
-
-if ($conn) {
-    mysqli_close($conn);
-}
-
-// Array di eventi di esempio (in un'implementazione reale, questi dati proverrebbero dal database)
-$events = [
-    [
-        'id' => 1,
-        'title' => 'Bike To School Day 2025',
-        'date' => '2025-05-20',
-        'location' => 'Piazza Castello, Torino',
-        'description' => 'Una giornata dedicata alla promozione della mobilità sostenibile nelle scuole. Partecipa con la tua bici e unisciti a centinaia di studenti per sensibilizzare sull\'importanza del trasporto eco-friendly.',
-        'full_description' => 'Il Bike to School Day è un\'iniziativa internazionale che promuove l\'uso della bicicletta come mezzo di trasporto sostenibile per andare a scuola. L\'evento di quest\'anno a Torino si concentrerà sul coinvolgimento di studenti di tutte le età, dalle scuole elementari alle superiori, per sensibilizzare sull\'importanza della mobilità sostenibile e dell\'attività fisica quotidiana. Durante la giornata, esperti del settore terranno brevi presentazioni sui benefici dell\'uso della bicicletta, sulla sicurezza stradale e sull\'impatto ambientale positivo. Saranno inoltre organizzati workshop interattivi e percorsi guidati attraverso la città, con un focus particolare sulla sicurezza e sull\'orientamento in ambiente urbano.',
-        'image' => 'assets/hero-image.jpg',
-        'time' => '08:00 - 17:00',
-        'participants' => 250,
-        'organizer' => 'TorollerCollective in collaborazione con il Comune di Torino',
-        'registration_deadline' => '2025-05-15',
-        'instagram_links' => [
-            ['title' => 'Highlights dell\'edizione 2024', 'url' => 'https://www.instagram.com/p/abcdefg123/'],
-            ['title' => 'Intervista ai partecipanti', 'url' => 'https://www.instagram.com/p/hijklmn456/'],
-            ['title' => 'Preparazione all\'evento', 'url' => 'https://www.instagram.com/p/opqrstu789/']
-        ]
-    ],
-    [
-        'id' => 2,
-        'title' => 'Workshop: Sicurezza Stradale',
-        'date' => '2025-06-15',
-        'location' => 'Parco del Valentino, Torino',
-        'description' => 'Workshop pratico sulla sicurezza stradale e le migliori pratiche per ciclisti urbani. Esperti del settore condivideranno consigli e tecniche per pedalare in città in modo sicuro.',
-        'full_description' => 'Questo workshop intensivo di mezza giornata è progettato per fornire ai ciclisti urbani le competenze e le conoscenze necessarie per navigare in sicurezza nel traffico cittadino. Condotto da esperti del settore e istruttori certificati, il workshop copre una vasta gamma di argomenti essenziali per la sicurezza stradale dei ciclisti. I partecipanti impareranno le migliori pratiche per la visibilità nel traffico, la manutenzione preventiva della bicicletta, le tecniche di guida difensiva e la gestione delle situazioni di emergenza. Il workshop include sia sessioni teoriche che pratiche, con simulazioni di situazioni reali e percorsi guidati nel parco. Ogni partecipante riceverà un kit di sicurezza che include luci per bicicletta, catarifrangenti e materiale informativo da portare a casa.',
-        'image' => 'assets/community-image.jpg',
-        'time' => '14:30 - 18:30',
-        'participants' => 100,
-        'organizer' => 'TorollerCollective in collaborazione con Polizia Municipale',
-        'registration_deadline' => '2025-06-10',
-        'instagram_links' => [
-            ['title' => 'Demo equipaggiamento di sicurezza', 'url' => 'https://www.instagram.com/p/123abcde/'],
-            ['title' => 'Intervista al nostro istruttore', 'url' => 'https://www.instagram.com/p/456fghij/'],
-            ['title' => 'Tecniche di sicurezza in azione', 'url' => 'https://www.instagram.com/p/789klmno/']
-        ]
-    ],
-    [
-        'id' => 3,
-        'title' => 'Critical Mass Torino',
-        'date' => '2025-07-01',
-        'location' => 'Piazza San Carlo, Torino',
-        'description' => 'Unisciti alla Critical Mass mensile di Torino. Un\'occasione per pedalare insieme e promuovere l\'uso della bicicletta come mezzo di trasporto sostenibile in città.',
-        'full_description' => 'La Critical Mass è un evento ciclistico che si svolge regolarmente in molte città del mondo, e a Torino è diventato un appuntamento fisso ogni primo giorno del mese. L\'obiettivo è quello di promuovere la mobilità sostenibile e sensibilizzare l\'opinione pubblica e le amministrazioni locali sull\'importanza delle infrastrutture ciclistiche in città. L\'evento di luglio 2025 sarà particolarmente significativo, in quanto coincide con l\'inaugurazione di nuove piste ciclabili in centro città. Il percorso si snoderà attraverso i quartieri storici di Torino, partendo da Piazza San Carlo e toccando alcuni dei luoghi più emblematici della città. Durante il percorso, ci saranno diverse soste informative presso progetti di rigenerazione urbana e spazi pubblici recentemente convertiti ad un uso più sostenibile. La pedalata si concluderà con un momento conviviale al Parco del Valentino, dove i partecipanti potranno scambiarsi idee e esperienze in un\'atmosfera rilassata e festosa.',
-        'image' => 'assets/product1.jpg',
-        'time' => '19:00 - 22:00',
-        'participants' => 500,
-        'organizer' => 'TorollerCollective e Bike Pride Torino',
-        'registration_deadline' => '2025-06-30',
-        'instagram_links' => [
-            ['title' => 'Highlights dell\'edizione di giugno', 'url' => 'https://www.instagram.com/p/abc123xyz/'],
-            ['title' => 'Il percorso di luglio', 'url' => 'https://www.instagram.com/p/def456uvw/'],
-            ['title' => 'Intervista agli organizzatori', 'url' => 'https://www.instagram.com/p/ghi789rst/']
-        ]
-    ]
-];
-
-// Trova l'evento selezionato
 $selectedEvent = null;
-foreach ($events as $event) {
-    if ($event['id'] == $eventId) {
-        $selectedEvent = $event;
-        break;
+if ($conn) {
+    $query = "SELECT * FROM eventi WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "i", $eventId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    
+    if ($event = mysqli_fetch_assoc($result)) {
+        $selectedEvent = [
+            'id' => $event['id'],
+            'title' => $event['titolo'],
+            'date' => $event['data'],
+            'location' => $event['luogo'],
+            'description' => $event['descrizione'],
+            'image' => 'assets/community-image.jpg',
+            'time' => '19:00 - 22:00',
+            'participants' => 100,
+            'organizer' => 'TorollerCollective',
+            'registration_deadline' => date('Y-m-d', strtotime($event['data'] . ' -5 days')),
+            'instagram_links' => [
+                ['title' => 'Seguici su Instagram', 'url' => 'https://www.instagram.com/torollercollective']
+            ]
+        ];
     }
-}
-
-// Se l'evento non esiste, reindirizza alla pagina eventi
-if (!$selectedEvent) {
-    header("Location: eventi.php");
+    
+    // Recupera gli eventi correlati
+    $relatedEvents = [];
+    $query = "SELECT * FROM eventi WHERE id != ? ORDER BY data ASC LIMIT 2";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "i", $eventId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    
+    while ($event = mysqli_fetch_assoc($result)) {
+        $relatedEvents[] = [
+            'id' => $event['id'],
+            'title' => $event['titolo'],
+            'date' => $event['data'],
+            'location' => $event['luogo'],
+            'description' => $event['descrizione'],
+            'image' => 'assets/community-image.jpg'
+        ];
+    }
+    mysqli_close($conn);
+} else {
+    header("Location: eventi.php?error=not_found");
     exit();
 }
 ?>

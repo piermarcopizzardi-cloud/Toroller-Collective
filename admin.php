@@ -22,6 +22,38 @@ try {
     error_log("Errore database: " . $e->getMessage());
 }
 
+// Gestione Eventi
+if (isset($_POST['add_event'])) {
+    $titolo = mysqli_real_escape_string($conn, $_POST['event_title']);
+    $data = $_POST['event_date'];
+    $luogo = mysqli_real_escape_string($conn, $_POST['event_location']);
+    $descrizione = mysqli_real_escape_string($conn, $_POST['event_description']);
+    
+    $query = "INSERT INTO eventi (titolo, data, descrizione, luogo) VALUES (?, ?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "ssss", $titolo, $data, $descrizione, $luogo);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $success = "Evento aggiunto con successo!";
+    } else {
+        $error = "Errore durante l'aggiunta dell'evento: " . mysqli_error($conn);
+    }
+}
+
+if (isset($_POST['delete_event']) && isset($_POST['event_id'])) {
+    $event_id = intval($_POST['event_id']);
+    
+    $query = "DELETE FROM eventi WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "i", $event_id);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $success = "Evento eliminato con successo!";
+    } else {
+        $error = "Errore durante l'eliminazione dell'evento: " . mysqli_error($conn);
+    }
+}
+
 // Gestione del profilo e cambio password
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['update_profile'])) {
@@ -682,7 +714,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <!-- Add Event Form -->
             <div class="form-section">
                 <h3>Aggiungi Nuovo Evento</h3>
-                <form method="POST" action="" enctype="multipart/form-data">
+                <form method="POST" action="">
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Titolo</label>
@@ -695,14 +727,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Descrizione</label>
-                            <textarea name="event_description" class="form-textarea" required></textarea>
+                            <label class="form-label">Luogo</label>
+                            <input type="text" name="event_location" class="form-input" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Immagine</label>
-                            <input type="file" name="event_image" class="form-input" required>
+                            <label class="form-label">Descrizione</label>
+                            <textarea name="event_description" class="form-textarea" required></textarea>
                         </div>
                     </div>
                     <button type="submit" name="add_event" class="submit-btn">Aggiungi Evento</button>
@@ -717,9 +749,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <thead>
                             <tr>
                                 <th>Seleziona</th>
-                                <th>ID</th>
                                 <th>Titolo</th>
                                 <th>Data</th>
+                                <th>Luogo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -730,9 +762,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ?>
                             <tr>
                                 <td><input type="radio" name="event_id" value="<?php echo $event['id']; ?>"></td>
-                                <td><?php echo $event['id']; ?></td>
                                 <td><?php echo htmlspecialchars($event['titolo']); ?></td>
                                 <td><?php echo date('d/m/Y', strtotime($event['data'])); ?></td>
+                                <td><?php echo htmlspecialchars($event['luogo']); ?></td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -741,6 +773,80 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </form>
             </div>
         </div>
+
+        <script>
+        function addEvent(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            fetch('admin_actions.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Aggiunge il nuovo evento alla tabella
+                    const tbody = document.querySelector('#eventsList tbody');
+                    const tr = document.createElement('tr');
+                    tr.id = `event-${data.event.id}`;
+                    tr.innerHTML = `
+                        <td>${data.event.id}</td>
+                        <td>${data.event.titolo}</td>
+                        <td>${new Date(data.event.data).toLocaleDateString('it-IT')}</td>
+                        <td>${data.event.luogo}</td>
+                        <td>
+                            <button onclick="deleteEvent(${data.event.id})" class="delete-btn">Elimina</button>
+                        </td>
+                    `;
+                    tbody.insertBefore(tr, tbody.firstChild);
+                    e.target.reset();
+                    alert('Evento aggiunto con successo!');
+                } else {
+                    alert(data.error || 'Errore durante l\'aggiunta dell\'evento');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore durante l\'aggiunta dell\'evento');
+            });
+        }
+
+        function deleteEvent(id) {
+            if (!confirm('Sei sicuro di voler eliminare questo evento?')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'delete_event');
+            formData.append('event_id', id);
+
+            fetch('admin_actions.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`event-${id}`).remove();
+                    alert('Evento eliminato con successo!');
+                } else {
+                    alert(data.error || 'Errore durante l\'eliminazione dell\'evento');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore durante l\'eliminazione dell\'evento');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventForm = document.getElementById('eventForm');
+            if (eventForm) {
+                eventForm.addEventListener('submit', addEvent);
+            }
+        });
+        </script>
     </div>
 
     <script>
@@ -790,6 +896,90 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function toggleCart() {
             const cartPopup = document.getElementById('cartPopup');
             cartPopup.classList.toggle('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestione del form di aggiunta evento
+            const addEventForm = document.getElementById('addEventForm');
+            addEventForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                formData.append('action', 'add_event');
+                
+                fetch('admin_actions.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Aggiungi la nuova riga alla tabella
+                        const tbody = document.querySelector('#eventsList tbody');
+                        const newRow = document.createElement('tr');
+                        newRow.dataset.eventId = data.event.id;
+                        newRow.innerHTML = `
+                            <td>${data.event.id}</td>
+                            <td>${data.event.titolo}</td>
+                            <td>${formatDate(data.event.data)}</td>
+                            <td>${data.event.luogo}</td>
+                            <td>
+                                <button onclick="deleteEvent(${data.event.id})" class="delete-btn">Elimina</button>
+                            </td>
+                        `;
+                        tbody.insertBefore(newRow, tbody.firstChild);
+                        
+                        // Reset del form
+                        addEventForm.reset();
+                        
+                        // Mostra messaggio di successo
+                        alert('Evento aggiunto con successo!');
+                    } else {
+                        alert(data.error || 'Errore durante l\'aggiunta dell\'evento');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore durante l\'aggiunta dell\'evento');
+                });
+            });
+        });
+
+        function deleteEvent(eventId) {
+            if (!confirm('Sei sicuro di voler eliminare questo evento?')) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('action', 'delete_event');
+            formData.append('event_id', eventId);
+            
+            fetch('admin_actions.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Rimuovi la riga dalla tabella
+                    const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+                    alert('Evento eliminato con successo!');
+                } else {
+                    alert(data.error || 'Errore durante l\'eliminazione dell\'evento');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore durante l\'eliminazione dell\'evento');
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('it-IT');
         }
     </script>
 </body>

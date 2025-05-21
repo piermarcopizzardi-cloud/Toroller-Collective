@@ -1,9 +1,9 @@
 <?php 
 function connetti($db){
-    $server="localhost"; 
-    $user="root"; 
-    $password=""; 
-    $database="toroller"; 
+    $server = getenv('DB_HOST') ?: 'localhost';
+    $user = getenv('DB_USERNAME') ?: 'root';
+    $password = getenv('DB_PASSWORD') ?: '';
+    $database = getenv('DB_DATABASE') ?: 'toroller';
 
     $conn = mysqli_connect($server, $user, $password, $database);
     

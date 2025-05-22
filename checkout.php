@@ -13,6 +13,7 @@ if (!$isLoggedIn) {
 // Stabilisci la connessione al database
 $conn = connetti('toroller');
 
+
 // Gestione rimozione dal carrello
 if (isset($_POST['remove_from_cart']) && $isLoggedIn) {
     $cartItemId = (int)$_POST['cart_item_id'];
@@ -63,7 +64,10 @@ if ($isLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/checkout.css">
+    <!-- <style>
         * {
             margin: 0;
             padding: 0;
@@ -711,79 +715,11 @@ if ($isLoggedIn) {
                 right: -100px;
             }
         }
-    </style>
+    </style> -->
 </head>
 <body>
-    <div class="header">
-        <div class="logo-container">
-            <img src="assets/logo1.jpg" alt="TorollerCollective Logo" width="80" height="80" style="object-fit: contain;">
-            <div class="logo-text">TorollerCollective</div>
-        </div>
-        
-        <div class="nav-menu">
-            <div class="nav-links">
-                <a class="nav-link" href="index.php">Home</a>
-                <a class="nav-link" href="community.php">Community</a>
-                <div class="nav-link-with-icon">
-                    <a class="nav-link active" href="shop.php">Shop</a>
-                    <div class="cart-container">
-                        <div class="cart-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="9" cy="21" r="1"></circle>
-                                <circle cx="20" cy="21" r="1"></circle>
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
-                            <span class="cart-badge"><?php echo array_sum(array_column($cartItems, 'quantita')); ?></span>
-                        </div>
-                    </div>
-                </div>
-                <a class="nav-link" href="eventi.php">Eventi</a>
-            </div>
-            
-            <?php if ($isLoggedIn): ?>
-                <div class="user-menu">
-                    <span class="user-email"><?php echo htmlspecialchars($_SESSION['email']); ?></span>
-                    <a href="?logout=1" class="logout-btn">Logout</a>
-                </div>
-            <?php else: ?>
-                <div class="auth-buttons">
-                    <a href="login.php" class="login-btn">Login</a>
-                    <a href="registrazione.php" class="get-started-btn">Get started</a>
-                </div>
-            <?php endif; ?>
-        </div>
-        
-        <div class="hamburger-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </div>
-    </div>
-
-    <div class="mobile-menu">
-        <div class="close-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </div>
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="community.php">Community</a>
-        <a class="nav-link active" href="shop.php">Shop</a>
-        <a class="nav-link" href="eventi.php">Eventi</a>
-        
-        <div class="auth-buttons">
-            <?php if ($isLoggedIn): ?>
-            <div class="user-menu">
-                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
-                <a href="?logout=1" class="logout-btn">Logout</a>
-            </div>
-            <?php else: ?>
-            <a href="login.php" class="login-btn">Login</a>
-            <a href="registrazione.php" class="get-started-btn">Get started</a>
-            <?php endif; ?>
-        </div>
-    </div>
-
+    <?php include 'components/header.php'; ?>
+    
     <main class="checkout-container">
         <div class="checkout-summary">
             <h2 class="section-title">Riepilogo carrello</h2>
@@ -848,29 +784,8 @@ if ($isLoggedIn) {
         </div>
     </main>
 
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
-            const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
-
-            function toggleMenu() {
-                mobileMenu.classList.toggle('active');
-                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-            }
-
-            hamburger.addEventListener('click', toggleMenu);
-            closeMenu.addEventListener('click', toggleMenu);
-
-            // Close menu when clicking on links
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', toggleMenu);
-            });
-        });
-
-        // Cart popup removed in checkout page
-
         function selectPaymentMethod(method) {
             const options = document.querySelectorAll('.payment-option');
             options.forEach(option => option.classList.remove('selected'));

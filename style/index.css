@@ -25,30 +25,7 @@ body {
     --button-hover-bg: #03b100;
 }
 
-/* Header */
-.header {
-    width: 100%;
-    height: 118px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 110px;
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    border-bottom: 1px solid #E5E7EB;
-}
-
-/* Logo styles */
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    text-decoration: none;
-    transition: var(--hover-transition);
+/* Header overrides removed to prevent conflicts with header.css */
 }
 
 .logo-container:hover {

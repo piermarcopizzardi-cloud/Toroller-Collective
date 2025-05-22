@@ -1,0 +1,149 @@
+/* .cart-icon-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.cart-icon {
+    color: #4a5568;
+    transition: all 0.3s ease;
+}
+
+.cart-icon:hover {
+    color: #1a202c;
+}
+
+.nav-menu .cart-badge,
+.header .cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #04CD00;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.cart-popup {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    width: 320px;
+    z-index: 1000;
+    margin-top: 8px;
+    padding: 16px;
+}
+
+.cart-popup.active {
+    display: block;
+}
+
+.cart-items {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.item-details {
+    flex-grow: 1;
+}
+
+.item-name {
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.item-quantity {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.item-price {
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0 16px;
+}
+
+.remove-item {
+    color: #ef4444;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    transition: all 0.3s ease;
+}
+
+.remove-item:hover {
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #e5e7eb;
+    font-weight: 600;
+}
+
+.checkout-button {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 8px 16px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkout-button:hover {
+    background-color: #16a34a;
+}
+
+.empty-cart {
+    text-align: center;
+    color: #6b7280;
+    padding: 16px;
+}
+
+@media (max-width: 768px) {
+    .cart-popup {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-radius: 16px 16px 0 0;
+        margin: 0;
+        max-height: 80vh;
+    }
+    
+    .cart-items {
+        max-height: 50vh;
+    }
+} */

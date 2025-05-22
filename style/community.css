@@ -1,5 +1,16 @@
+
 /* Base styles */
 @import 'index.css';
+@import 'header.css';
+
+/* Z-index fixes for mobile menu */
+.mobile-menu {
+    z-index: 9999;
+}
+
+.header {
+    z-index: 9998;
+}
 
 /* Animazione linea verde */
 @keyframes expandLine {

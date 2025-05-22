@@ -48,7 +48,7 @@ if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
     <div class="nav-menu">
         <div class="nav-links">
             <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/index.php">Home</a>
-            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'community.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/community.php">Community</a>
+            <a class="nav-link community-link <?php echo basename($_SERVER['PHP_SELF']) === 'community.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/community.php" data-logged-in="<?php echo $isLoggedIn ? 'true' : 'false'; ?>">Community</a>
             <div class="nav-link-with-icon">
                 <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' || basename($_SERVER['PHP_SELF']) === 'checkout.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
                 <div class="cart-container">
@@ -96,12 +96,13 @@ if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
         </svg>
     </div>
     <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/index.php">Home</a>
-    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'community.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/community.php">Community</a>
+    <?php if ($isLoggedIn): ?>
+        <a class="nav-link community-link <?php echo basename($_SERVER['PHP_SELF']) === 'community.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/community.php">Community</a>
+    <?php endif; ?>
     <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
     <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'eventi.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/eventi.php">Eventi</a>
     
-    <div class="auth-buttons">
-        <?php if ($isLoggedIn): ?>
+    <?php if ($isLoggedIn): ?>
         <div class="user-menu">
             <?php if (isset($isAdmin) && $isAdmin): ?>
                 <a href="<?php echo $basePath; ?>/admin.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
@@ -110,9 +111,10 @@ if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
             <?php endif; ?>
             <a href="<?php echo $basePath; ?>/?logout=1" class="logout-btn">Logout</a>
         </div>
-        <?php else: ?>
-        <a href="<?php echo $basePath; ?>/login.php" class="login-btn">Login</a>
-        <a href="<?php echo $basePath; ?>/registrazione.php" class="get-started-btn">Get started</a>
-        <?php endif; ?>
-    </div>
+    <?php else: ?>
+        <div class="auth-buttons">
+            <a href="<?php echo $basePath; ?>/login.php" class="login-btn">Login</a>
+            <a href="<?php echo $basePath; ?>/registrazione.php" class="get-started-btn">Get started</a>
+        </div>
+    <?php endif; ?>
 </div>

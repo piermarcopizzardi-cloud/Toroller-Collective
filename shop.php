@@ -36,39 +36,92 @@ if ($isLoggedIn && $conn) {
     }
 }
 
-// Gestione aggiunta al carrello
-if (isset($_POST['add_to_cart']) && $isLoggedIn) {
-    $productId = (int)$_POST['product_id'];
+// Ajax cart handling
+if (isset($_POST['action']) && $isLoggedIn) {
+    $response = ['success' => false];
     $email = mysqli_real_escape_string($conn, $_SESSION['email']);
-    
-    // Controlla se il prodotto è già nel carrello
-    $query = "SELECT id, quantita FROM carrello WHERE email_utente = '$email' AND id_prodotto = $productId";
-    $result = mysqli_query($conn, $query);
-    
-    if (mysqli_num_rows($result) > 0) {
-        // Aggiorna la quantità
-        $row = mysqli_fetch_assoc($result);
-        $newQuantity = $row['quantita'] + 1;
-        mysqli_query($conn, "UPDATE carrello SET quantita = $newQuantity WHERE id = " . $row['id']);
-    } else {
-        // Inserisci nuovo prodotto nel carrello
-        mysqli_query($conn, "INSERT INTO carrello (email_utente, id_prodotto, quantita) VALUES ('$email', $productId, 1)");
+
+    switch ($_POST['action']) {
+        case 'add_to_cart':
+            if (isset($_POST['product_id'])) {
+                $productId = (int)$_POST['product_id'];
+                
+                // Check if product exists in cart
+                $query = "SELECT id, quantita FROM carrello WHERE email_utente = '$email' AND id_prodotto = $productId";
+                $result = mysqli_query($conn, $query);
+                
+                if (mysqli_num_rows($result) > 0) {
+                    // Update quantity
+                    $row = mysqli_fetch_assoc($result);
+                    $newQuantity = $row['quantita'] + 1;
+                    $success = mysqli_query($conn, "UPDATE carrello SET quantita = $newQuantity WHERE id = " . $row['id']);
+                } else {
+                    // Add new product to cart
+                    $success = mysqli_query($conn, "INSERT INTO carrello (email_utente, id_prodotto, quantita) VALUES ('$email', $productId, 1)");
+                }
+                
+                if ($success) {
+                    // Get updated cart info
+                    $cartQuery = "SELECT SUM(quantita) as total FROM carrello WHERE email_utente = '$email'";
+                    $cartResult = mysqli_query($conn, $cartQuery);
+                    $cartTotal = mysqli_fetch_assoc($cartResult)['total'] ?? 0;
+                    
+                    $response = [
+                        'success' => true,
+                        'cartTotal' => $cartTotal
+                    ];
+                }
+            }
+            break;
+            
+        case 'remove_from_cart':
+            if (isset($_POST['cart_item_id'])) {
+                $cartItemId = (int)$_POST['cart_item_id'];
+                $success = mysqli_query($conn, "DELETE FROM carrello WHERE id = $cartItemId AND email_utente = '$email'");
+                
+                if ($success) {
+                    // Get updated cart info
+                    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price 
+                                FROM carrello c 
+                                JOIN prodotti p ON c.id_prodotto = p.id 
+                                WHERE c.email_utente = '$email'";
+                    $cartResult = mysqli_query($conn, $cartQuery);
+                    
+                    $cartItems = [];
+                    $total = 0;
+                    while ($row = mysqli_fetch_assoc($cartResult)) {
+                        $cartItems[] = $row;
+                        $total += $row['price'] * $row['quantita'];
+                    }
+                    
+                    $countQuery = "SELECT SUM(quantita) as total FROM carrello WHERE email_utente = '$email'";
+                    $countResult = mysqli_query($conn, $countQuery);
+                    $cartTotal = mysqli_fetch_assoc($countResult)['total'] ?? 0;
+                    
+                    $response = [
+                        'success' => true,
+                        'cartItems' => $cartItems,
+                        'cartTotal' => $cartTotal,
+                        'total' => $total
+                    ];
+                }
+            }
+            break;
+            
+        case 'check_cart':
+            $cartQuery = "SELECT COUNT(*) as count FROM carrello WHERE email_utente = '$email'";
+            $result = mysqli_query($conn, $cartQuery);
+            $cartCount = mysqli_fetch_assoc($result)['count'];
+            
+            $response = [
+                'success' => true,
+                'cartTotal' => $cartCount
+            ];
+            break;
     }
     
-    // Reindirizza per evitare il riinvio del form
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-// Gestione rimozione dal carrello
-if (isset($_POST['remove_from_cart']) && $isLoggedIn) {
-    $cartItemId = (int)$_POST['cart_item_id'];
-    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
-    
-    mysqli_query($conn, "DELETE FROM carrello WHERE id = $cartItemId AND email_utente = '$email'");
-    
-    // Reindirizza per evitare il riinvio del form
-    header("Location: " . $_SERVER['PHP_SELF']);
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit();
 }
 
@@ -216,87 +269,16 @@ if ($conn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/shop.css" rel="stylesheet">
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/shop.css">
 </head>
 <body>
-    <div class="header">
-        <div class="logo-container">
-            <img src="assets/logo1.jpg" alt="TorollerCollective Logo" width="80" height="80" style="object-fit: contain;">
-            <div class="logo-text">TorollerCollective</div>
-        </div>
+    <?php include 'components/header.php'; ?>
         
-        <div class="nav-menu">
-            <div class="nav-links">
-                <a class="nav-link" href="index.php">Home</a>
-                <a class="nav-link" href="community.php">Community</a>
-                <div class="nav-link-with-icon">
-                    <a class="nav-link active" href="shop.php">Shop</a>
-                    <div class="cart-container">
-                        <div class="cart-icon" onclick="toggleCart()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="9" cy="21" r="1"></circle>
-                                <circle cx="20" cy="21" r="1"></circle>
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
-                            <span class="cart-badge"><?php echo array_sum(array_column($cartItems, 'quantita')); ?></span>
-                        </div>
-                        
-                        <!-- Cart Popup -->
-                        <div id="cartPopup" class="cart-popup">
-                            <div class="cart-popup-header">
-                                <h3>Il tuo carrello</h3>
-                                <span class="close-cart" onclick="toggleCart()">&times;</span>
-                            </div>
-                            <div class="cart-items">
-                                <?php if (!empty($cartItems)): ?>
-                                    <?php foreach ($cartItems as $item): ?>
-                                        <div class="cart-item">
-                                            <div>
-                                                <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
-                                                <div class="cart-item-price">€<?php echo number_format($item['price'], 2, ',', '.'); ?> x <?php echo $item['quantita']; ?></div>
-                                            </div>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="cart_item_id" value="<?php echo $item['id']; ?>">
-                                                <button type="submit" name="remove_from_cart" class="remove-item">&times;</button>
-                                            </form>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <p class="empty-cart">Il carrello è vuoto</p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="cart-footer">
-                                <div class="cart-total">Totale: €<?php echo number_format($cartTotal, 2, ',', '.'); ?></div>
-                                <?php if (!empty($cartItems)): ?>
-                                    <a href="checkout.php" class="checkout-btn">Procedi all'acquisto</a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <a class="nav-link" href="eventi.php">Eventi</a>
-            </div>
-
-            <div class="auth-buttons">
-                <?php if ($isLoggedIn): ?>
-                <div class="user-menu">
-                    <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
-                    <a href="?logout=1" class="logout-btn">Logout</a>
-                </div>
-                <?php else: ?>
-                <a href="login.php" class="login-btn">Login</a>
-                <a href="registrazione.php" class="get-started-btn">Get started</a>
-                <?php endif; ?>
-            </div>
-        </div>
+       
         
-        <div class="hamburger-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-        </div>
+       
     </div>
 
     <div class="mobile-menu">

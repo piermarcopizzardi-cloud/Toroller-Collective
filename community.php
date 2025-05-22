@@ -188,110 +188,35 @@ if ($isLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/community.css" rel="stylesheet">
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/cart.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/community.css">
+    <script>
+        console.log('Community page loaded');
+    </script>
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            console.log('Window load event fired');
+            console.log('Mobile menu element:', document.querySelector('.mobile-menu'));
+            console.log('Hamburger element:', document.querySelector('.hamburger-menu'));
+        });
+    </script>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-container">
-            <img src="assets/logo1.jpg" alt="TorollerCollective Logo" width="80" height="80" style="object-fit: contain;">
-            <div class="logo-text">TorollerCollective</div>
-        </div>
-        
-        <div class="nav-menu">
-            <div class="nav-links">
-                <a class="nav-link" href="index.php">Home</a>
-                <a class="nav-link active" href="community.php">Community</a>
-                <div class="nav-link-with-icon">
-                    <a class="nav-link" href="shop.php">Shop</a>
-                    <div class="cart-container">
-                        <div class="cart-icon" onclick="toggleCart()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="9" cy="21" r="1"></circle>
-                                <circle cx="20" cy="21" r="1"></circle>
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
-                            <span class="cart-badge"><?php echo array_sum(array_column($cartItems, 'quantita')); ?></span>
-                        </div>
-                        
-                        <!-- Cart Popup -->
-                        <div id="cartPopup" class="cart-popup">
-                            <div class="cart-popup-header">
-                                <h3>Il tuo carrello</h3>
-                                <span class="close-cart" onclick="toggleCart()">&times;</span>
-                            </div>
-                            <div class="cart-items">
-                                <?php if (!empty($cartItems)): ?>
-                                    <?php foreach ($cartItems as $item): ?>
-                                        <div class="cart-item">
-                                            <div>
-                                                <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
-                                                <div class="cart-item-price">€<?php echo number_format($item['price'], 2, ',', '.'); ?> x <?php echo $item['quantita']; ?></div>
-                                            </div>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="cart_item_id" value="<?php echo $item['id']; ?>">
-                                                <button type="submit" name="remove_from_cart" class="remove-item">&times;</button>
-                                            </form>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <p class="empty-cart">Il carrello è vuoto</p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="cart-footer">
-                                <div class="cart-total">Totale: €<?php echo number_format($cartTotal, 2, ',', '.'); ?></div>
-                                <?php if (!empty($cartItems)): ?>
-                                    <a href="checkout.php" class="checkout-btn">Procedi all'acquisto</a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <a class="nav-link " href="eventi.php">Eventi</a>
-            </div>
-            
-            <div class="auth-buttons">
-                <?php if ($isLoggedIn): ?>
-                <div class="user-menu">
-                    <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
-                    <a href="?logout=1" class="logout-btn">Logout</a>
-                </div>
-                <?php else: ?>
-                <a href="login.php" class="login-btn">Login</a>
-                <a href="registrazione.php" class="get-started-btn">Get started</a>
-                <?php endif; ?>
-            </div>
-        </div>
-        
-        <div class="hamburger-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </div>
-    </div>
-
-    <div class="mobile-menu">
-        <div class="close-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </div>
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link active" href="community.php">Community</a>
-        <a class="nav-link" href="shop.php">Shop</a>
-        <a class="nav-link" href="eventi.php">Eventi</a>
-        
-        <div class="auth-buttons">
-            <?php if ($isLoggedIn): ?>
-            <div class="user-menu">
-                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
-                <a href="?logout=1" class="logout-btn">Logout</a>
-            </div>
-            <?php else: ?>
-            <a href="login.php" class="login-btn">Login</a>
-            <a href="registrazione.php" class="get-started-btn">Get started</a>
-            <?php endif; ?>
-        </div>
-    </div>
+    <!-- Start Header Include -->
+    <?php 
+    ob_start();
+    include __DIR__ . '/components/header.php';
+    $header_content = ob_get_clean();
+    if (empty(trim($header_content))) {
+        echo "<!-- Header include failed! -->";
+    } else {
+        echo $header_content;
+    }
+    ?>
+    <!-- End Header Include -->
 
     <div class="forum-container">
         <?php if (!$isLoggedIn): ?>
@@ -466,46 +391,6 @@ if ($isLoggedIn) {
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
-            const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
-
-            function toggleMenu() {
-                mobileMenu.classList.toggle('active');
-                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-            }
-
-            hamburger.addEventListener('click', toggleMenu);
-            closeMenu.addEventListener('click', toggleMenu);
-
-            // Close menu when clicking on links
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', toggleMenu);
-            });
-        });
-
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.style.display = cartPopup.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Chiudi il popup del carrello quando si clicca fuori
-        document.addEventListener('click', function(event) {
-            const cartPopup = document.getElementById('cartPopup');
-            const cartIcon = document.querySelector('.cart-icon');
-            
-            if (!cartPopup.contains(event.target) && !cartIcon.contains(event.target)) {
-                cartPopup.style.display = 'none';
-            }
-        });
-
-        // Previeni la chiusura quando si clicca dentro il carrello
-        document.getElementById('cartPopup').addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
-    </script>
+    <!-- header.js is already loaded in the head -->
 </body>
 </html>

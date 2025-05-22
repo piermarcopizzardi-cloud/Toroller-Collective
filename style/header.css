@@ -149,7 +149,7 @@ body {
     box-shadow: 0 4px 6px rgba(4, 205, 0, 0.2);
 }
 
-.user-menu {
+.header .user-menu {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -159,36 +159,36 @@ body {
     transition: all 0.3s ease;
 }
 
-.user-menu:hover {
+.header .user-menu:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(4, 205, 0, 0.1);
 }
 
-.user-email {
+.header .user-email {
     color: #04CD00;
     font-size: 16px;
     font-weight: 600;
     text-decoration: none;
 }
 
-.logout-btn {
+.header .logout-btn {
     color: #BDD3C6;
     text-decoration: none;
     font-size: 14px;
     transition: color 0.3s ease;
 }
 
-.logout-btn:hover {
+.header .logout-btn:hover {
     color: #04CD00;
 }
 
 /* Cart styles */
-.cart-container {
+.header .cart-container {
     position: relative;
     display: inline-block;
 }
 
-.cart-icon {
+.header .cart-icon {
     cursor: pointer;
     position: relative;
     padding: 8px;
@@ -196,13 +196,13 @@ body {
     border-radius: 50%;
 }
 
-.cart-icon:hover {
+.header .cart-icon:hover {
     transform: translateY(-2px);
     background-color: #f3fff3;
     color: #04CD00;
 }
 
-.cart-badge {
+.header .cart-badge {
     position: absolute;
     top: -5px;
     right: -5px;
@@ -214,16 +214,18 @@ body {
     transition: all 0.3s ease;
 }
 
-.cart-icon:hover .cart-badge {
+.header .cart-icon:hover .cart-badge {
     transform: scale(1.1);
 }
 
-/* Mobile menu styles */
+/* Mobile menu styles (Consolidated) */
 .hamburger-menu {
-    display: none;
+    display: none; /* Hidden by default, shown in media query */
     padding: 8px;
     cursor: pointer;
-    color: #04CD00;
+    color: #04CD00; /* Consistent color */
+    position: relative;
+    z-index: 10000; /* High z-index to be clickable above other header elements if necessary */
 }
 
 .hamburger-menu svg {
@@ -235,52 +237,74 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.98); /* Reverted to default background */
-    z-index: 1000; /* Reverted to default z-index */
-    display: none; /* Initially hidden */
+    width: 100vw; /* Use viewport width */
+    height: 100vh; /* Use viewport height */
+    background-color: rgba(255, 255, 255, 0.98); /* Semi-transparent white background */
+    display: none; /* CRUCIAL: Start hidden, activated by .active class */
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 2rem; /* Spacing for menu items */
+    z-index: 9999; /* High z-index, but below hamburger/close if they need to overlay */
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease;
+    pointer-events: none; /* Not interactive when hidden */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .mobile-menu.active {
-    display: flex;
+    display: flex; /* CRUCIAL: Show when active */
     opacity: 1;
     visibility: visible;
+    pointer-events: all; /* Interactive when active */
 }
 
 .mobile-menu .nav-link {
-    font-size: 24px;
-    padding: 12px;
+    font-size: 1.5rem; /* Larger font for mobile menu */
+    text-align: center;
+    padding: 1rem;
+    color: #4B5563; /* Copied from one of the original blocks */
+    text-decoration: none;
+}
+
+.mobile-menu .nav-link:hover {
+    color: #04CD00; /* Hover color */
 }
 
 .mobile-menu .auth-buttons {
+    display: flex;
     flex-direction: column;
-    margin-top: 24px;
+    margin-top: 24px; /* Space above auth buttons */
+    gap: 1rem; /* Space between auth buttons */
+    align-items: center;
+}
+
+/* Ensure mobile auth buttons are styled consistently with desktop, if desired */
+.mobile-menu .auth-buttons .login-btn,
+.mobile-menu .auth-buttons .get-started-btn {
+    padding: 10px 20px; /* Example padding, adjust as needed */
+    width: auto; /* Or set a specific width */
+    text-align: center;
+    /* Other button styles will be inherited or can be specified here */
 }
 
 .close-menu {
     position: absolute;
-    top: 32px;
-    right: 32px;
+    top: 2rem; 
+    right: 2rem;
     cursor: pointer;
-    color: #04CD00;
-    font-size: 24px;
-    transition: transform 0.3s ease;
+    color: #04CD00; /* Consistent color */
+    font-size: 24px; /* Size of the close icon/text */
+    z-index: 10000; /* Same z-index as hamburger to ensure it's clickable */
+    transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .close-menu:hover {
-    color: #03b100;
-    transform: rotate(90deg);
+    color: #03b100; /* Darker green on hover */
+    transform: rotate(90deg); /* Rotation effect on hover */
 }
 
-@keyframes mobileMenuFade {
+@keyframes mobileMenuFade { /* This animation wasn't explicitly used, but good to keep if needed */
     from {
         opacity: 0;
     }
@@ -289,106 +313,28 @@ body {
     }
 }
 
-/* Mobile Menu Styles */
-.hamburger-menu {
-    display: none;
-    cursor: pointer;
-    color: #4B5563;
-    position: relative;
-    z-index: 10000;
-}
-
-.mobile-menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(255, 255, 255, 0.98);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    pointer-events: none;
-}
-
-.mobile-menu.active {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: all;
-}
-
-.close-menu {
-    position: absolute;
-    top: 2rem;
-    right: 2rem;
-    cursor: pointer;
-    color: #4B5563;
-    z-index: 10000;
-}
-
-.mobile-menu .nav-link {
-    font-size: 1.5rem;
-    text-align: center;
-    padding: 1rem;
-}
-
-/* Responsive styles */
+/* Responsive styles (Simplified) */
 @media (max-width: 1024px) {
     .header {
-        padding: 0 20px;
+        padding: 0 2rem; /* Consolidated padding for tablet and smaller */
+    }
+
+    .nav-menu { /* Main desktop navigation */
+        display: none; /* Hide desktop nav links */
     }
 
     .hamburger-menu {
-        display: block;
-    }
-
-    .nav-menu {
-        display: none;
-    }
-}
-
-@media (max-width: 1024px) {
-    .header {
-        padding: 0 2rem;
-    }
-    
-    .nav-links {
-        gap: 1.5rem;
+        display: block; /* Show hamburger icon */
     }
 }
 
 @media (max-width: 768px) {
-    .header .nav-menu {
-        display: none !important;
-    }
+    /* The previous !important rules for .header .nav-menu, .hamburger-menu, */
+    /* and .mobile-menu children have been removed for now. */
+    /* The primary display logic for .mobile-menu.active should handle visibility. */
+    /* If specific issues arise on smaller screens with items inside the mobile menu, */
+    /* targeted styles can be added here, preferably without !important. */
     
-    .hamburger-menu {
-        display: block !important;
-    }
-
-    .mobile-menu .nav-link,
-    .mobile-menu .auth-buttons a,
-    .mobile-menu .user-menu a {
-        opacity: 1 !important;
-        visibility: visible !important;
-        width: auto !important;
-        margin: 0 !important;
-        padding: 1rem !important;
-        display: block !important;
-    }
-    
-    .mobile-menu .auth-buttons {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 1rem !important;
-        align-items: center !important;
-    }
+    /* Example: If .mobile-menu .nav-link needs different padding on small mobiles */
+    /* .mobile-menu .nav-link { padding: 0.8rem; } */
 }

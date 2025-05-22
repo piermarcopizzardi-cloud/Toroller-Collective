@@ -26,6 +26,55 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Apply more specific selectors for user-menu and user-email */
+body > .header .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 16px !important; /* Make padding important */
+    border: 1px solid #7FE47E;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    background-color: #ffffff; 
+    height: auto; 
+    min-height: 40px !important; /* Make min-height important */
+    box-sizing: border-box !important; /* Ensure box-sizing */
+}
+
+body > .header .user-menu:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(4, 205, 0, 0.1);
+}
+
+body > .header .user-email {
+    color: #04CD00;
+    font-size: 16px !important; /* Added !important */
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0 !important; /* Reset padding */
+    margin: 0 !important; /* Reset margin */
+    line-height: normal !important; /* Normalize line-height */
+    display: inline-block !important; /* Control box model */
+    vertical-align: middle !important; /* Align properly if display is inline-block */
+}
+
+body > .header .logout-btn {
+    color: #BDD3C6;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+body > .header .logout-btn:hover {
+    color: #04CD00;
+}
+
+/* Cart styles */
+body > .header .cart-container {
+    position: relative;
+    display: inline-block;
+}
+
 .header .logo-container {
     display: flex;
     align-items: center;
@@ -110,7 +159,7 @@ body {
 .nav-link-with-icon {
     position: relative;
     display: flex;
-    align-items: center;
+    align-items: center; /* Ensure vertical alignment */
     gap: 10px;
 }
 
@@ -153,14 +202,14 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 8px 16px;
+    padding: 8px 16px !important; /* Make padding important */
     border: 1px solid #7FE47E;
     border-radius: 30px;
     transition: all 0.3s ease;
-    /* Ensure high specificity by default if other pages are fine */
-    background-color: #ffffff; /* Explicitly set background if needed */
-    height: auto; /* Or a specific height if it's being collapsed */
-    min-height: 40px; /* Example: ensure it has a minimum height */
+    background-color: #ffffff; 
+    height: auto; 
+    min-height: 40px !important; /* Make min-height important */
+    box-sizing: border-box !important; /* Ensure box-sizing */
 }
 
 .header .user-menu:hover {
@@ -170,9 +219,14 @@ body {
 
 .header .user-email {
     color: #04CD00;
-    font-size: 16px;
+    font-size: 16px !important; /* Added !important */
     font-weight: 600;
     text-decoration: none;
+    padding: 0 !important; /* Reset padding */
+    margin: 0 !important; /* Reset margin */
+    line-height: normal !important; /* Normalize line-height */
+    display: inline-block !important; /* Control box model */
+    vertical-align: middle !important; /* Align properly if display is inline-block */
 }
 
 .header .logout-btn {
@@ -220,6 +274,11 @@ body {
 
 .header .cart-icon:hover .cart-badge {
     transform: scale(1.1);
+}
+
+/* Adjustment for cart icon on admin page for vertical alignment */
+.admin-page .header .cart-icon {
+    top: -4px; /* Move up by 4 pixels. Adjust this value as needed. */
 }
 
 /* Mobile menu styles (Consolidated) */

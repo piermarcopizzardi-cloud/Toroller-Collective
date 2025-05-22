@@ -434,6 +434,9 @@ body.admin-page .header .cart-icon {
     position: relative; /* Ensure positioning context */
     top: 2px; /* Adjust as needed, try small positive or negative values like 1px, -1px, 2px */
     /* Example: top: 1px; to move it slightly down */
+    margin-top: 0 !important; /* Aggiunto per resettare il margine superiore */
+    padding-top: 0 !important; /* Aggiunto per resettare il padding superiore */
+    vertical-align: top !important; /* Tentativo di forzare l'allineamento verticale */
 }
 /* === End of specific adjustment for cart icon === */
 

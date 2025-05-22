@@ -1,6 +1,12 @@
 /* Basic cart styling - can be expanded */
 .cart-container {
     position: relative;
+    margin-top: 0 !important; /* Aggiunto per contrastare lo spostamento verso il basso, specialmente in sezioni admin */
+    /* Se questo non dovesse bastare, potresti provare anche con:
+       padding-top: 0 !important;
+       oppure un valore negativo per il margine, ad esempio:
+       margin-top: -5px !important;
+       Assicurati anche che non ci siano stili in admin.css che influenzano .cart-icon specificamente. */
 }
 
 .cart-icon {

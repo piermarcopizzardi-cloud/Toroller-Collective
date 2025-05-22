@@ -106,9 +106,12 @@ if ($conn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($selectedEvent['title']); ?> - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/evento-dettaglio.css" rel="stylesheet">
-     <link href="style/header.css" rel="stylesheet">
-    <link href="style/eventi.css" rel="stylesheet">
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
+    <link href="<?php echo $basePath; ?>/style/evento-dettaglio.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/eventi.css" rel="stylesheet">
 </head>
 <body>
     <?php include 'components/header.php'?>
@@ -262,6 +265,7 @@ if ($conn) {
         </div>
     </div>
 
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Menu mobile
@@ -445,11 +449,6 @@ if ($conn) {
                 });
             });
         });
-
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.classList.toggle('active');
-        }
     </script>
 </body>
 </html>

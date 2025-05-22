@@ -117,9 +117,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="description" content="Cambia la tua password su TorollerCollective">
     <title>Cambio Password - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="style/cambio_password.css" rel="stylesheet">
-    <link rel="icon" href="assets/logo1.jpg" type="image/jpeg">
-  <link href="style/header.css" rel="stylesheet">
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
+    <link href="<?php echo $basePath; ?>/style/cambio_password.css" rel="stylesheet">
+    <link rel="icon" href="<?php echo $basePath; ?>/assets/logo1.jpg" type="image/jpeg">
+    <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet">
 </head>
 <body>
     <?php include 'components/header.php'?>
@@ -219,6 +222,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </form>
     </main>
 
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const hamburger = document.querySelector('.hamburger-menu');
@@ -239,11 +243,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 link.addEventListener('click', toggleMenu);
             });
         });
-
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.classList.toggle('active');
-        }
     </script>
 </body>
 </html>

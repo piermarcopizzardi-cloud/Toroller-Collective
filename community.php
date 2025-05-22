@@ -189,6 +189,7 @@ if ($isLoggedIn) {
     <title>Community - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/cart.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/community.css">

@@ -52,13 +52,30 @@ if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
             <div class="nav-link-with-icon">
                 <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' || basename($_SERVER['PHP_SELF']) === 'checkout.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
                 <div class="cart-container">
-                    <div class="cart-icon">
+                    <div id="cartIcon" class="cart-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="9" cy="21" r="1"></circle>
                             <circle cx="20" cy="21" r="1"></circle>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                         </svg>
-                        <span class="cart-badge"><?php echo $cartCount; ?></span>
+                        <span id="cartBadge" class="cart-badge"><?php echo $cartCount > 0 ? $cartCount : '0'; ?></span>
+                    </div>
+                    <div id="cartPopup" class="cart-popup">
+                        <div class="cart-popup-header">
+                            <h3>Il tuo Carrello</h3>
+                            <button id="closeCartPopup" class="close-cart-popup">&times;</button>
+                        </div>
+                        <div id="cartPopupItems" class="cart-items">
+                            <!-- Cart items will be loaded here by JavaScript -->
+                            <p class="empty-cart">Il tuo carrello è vuoto.</p>
+                        </div>
+                        <div class="cart-summary">
+                            <div id="cartPopupTotal" class="cart-total">
+                                <span>Totale:</span>
+                                <span>€0.00</span>
+                            </div>
+                            <button id="cartPopupCheckoutBtn" class="checkout-button">Vai alla Cassa</button>
+                        </div>
                     </div>
                 </div>
             </div>

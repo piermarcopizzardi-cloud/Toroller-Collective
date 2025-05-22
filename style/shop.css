@@ -72,89 +72,12 @@ a, button, input, select {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Improved text contrast */
 }
 
-.search-box {
-    display: flex;
-    margin-bottom: 16px;
-    position: relative;
-    width: 100%; /* Assicura che la search box occupi l'intera larghezza del contenitore */
-    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.search-box::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: #04CD00;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-    transform-origin: center;
-}
-
-.search-box:focus-within::before {
-    transform: scaleX(1);
-}
-
-.search-box.inside-card {
-    margin-bottom: 0; /* Rimuovi il margin-bottom per la barra all'interno della card */
-    display: flex;
-    align-items: stretch;
-    flex-wrap: nowrap;
-}
-
-.search-input {
-    flex: 1; /* Usa flex: 1 invece di flex-grow: 1 per un migliore controllo della larghezza */
-    padding: 12px 16px;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px 0 0 8px;
-    font-size: 14px;
-    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nella larghezza */
-    min-width: 0; /* Importante per evitare che l'input si espanda oltre il contenitore */
-    transition: var(--hover-transition);
-}
-
-.search-input:hover {
-    border-color: #04CD00;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #04CD00;
-    box-shadow: var(--input-hover-shadow);
-}
-
-.search-button {
-    background-color: #04CD00;
-    color: white;
-    border: none;
-    border-radius: 0 8px 8px 0;
-    padding: 0 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0; /* Impedisce al pulsante di ridursi */
-    min-width: 44px; /* Larghezza minima per una migliore accessibilità */
-}
-
-/* Mobile search container */
-.mobile-search-container {
-    display: none;
-    width: 100%;
-    margin-bottom: 16px;
-}
-
-.mobile-search-form {
-    width: 100%;
-}
-
 .filter-group {
     margin-bottom: 20px;
+}
+
+.filter-group:last-child { /* Rimuove il margine inferiore dall'ultimo gruppo di filtri nella card */
+    margin-bottom: 0;
 }
 
 .filter-group-title {
@@ -358,6 +281,19 @@ a, button, input, select {
     outline: none;
     border-color: #04CD00;
     box-shadow: var(--input-hover-shadow);
+}
+
+.sort-dropdown { /* Stile per il dropdown quando è nella sidebar */
+    width: 100%; /* Occupa tutta la larghezza della card */
+    padding: 10px 12px; /* Leggermente aggiustato il padding */
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4B5563;
+    background-color: #fff; /* Sfondo bianco per coerenza */
+    box-sizing: border-box; /* Include padding e border nella larghezza totale */
+    margin-bottom: 15px; /* Aggiunto spazio sotto se ci sono altri elementi */
+    transition: var(--hover-transition);
 }
 
 .products-grid {

@@ -65,6 +65,7 @@ if ($conn) {
     <title>TorollerCollective - Home</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/cart.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/index.css">
@@ -283,12 +284,14 @@ if ($conn) {
         </div>
     </div>
 
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
+    <?php /* REMOVED INLINE SCRIPT BLOCK 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
             const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
+            const closeMenu = document.querySelector('.close-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a, .mobile-menu .user-menu a');
 
             function toggleMenu() {
                 mobileMenu.classList.toggle('active');
@@ -303,26 +306,7 @@ if ($conn) {
                 link.addEventListener('click', toggleMenu);
             });
         });
-
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.style.display = cartPopup.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Chiudi il popup del carrello quando si clicca fuori
-        document.addEventListener('click', function(event) {
-            const cartPopup = document.getElementById('cartPopup');
-            const cartIcon = document.querySelector('.cart-icon');
-            
-            if (!cartPopup.contains(event.target) && !cartIcon.contains(event.target)) {
-                cartPopup.style.display = 'none';
-            }
-        });
-
-        // Previeni la chiusura quando si clicca dentro il carrello
-        document.getElementById('cartPopup').addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
     </script>
+    */ ?>
 </body>
 </html>

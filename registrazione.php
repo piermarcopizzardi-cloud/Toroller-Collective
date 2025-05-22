@@ -143,8 +143,11 @@ if (isset($_SESSION['registration_success'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrazione - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/registrazione.css" rel="stylesheet">
-  <link href="style/header.css" rel="stylesheet">
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
+    <link href="<?php echo $basePath; ?>/style/registrazione.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet">
 </head>
 <body>
     <?php include 'components/header.php'?>
@@ -223,6 +226,7 @@ if (isset($_SESSION['registration_success'])) {
         <img src="assets/image-left.png" alt="" class="image-left">
         <img src="assets/image-right.png" alt="" class="image-right">
     </div>
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const hamburger = document.querySelector('.hamburger-menu');
@@ -244,10 +248,10 @@ if (isset($_SESSION['registration_success'])) {
             });
         });
 
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.classList.toggle('active');
-        }
+        // function toggleCart() {
+        //     const cartPopup = document.getElementById('cartPopup');
+        //     cartPopup.classList.toggle('active');
+        // }
     </script>
 </body>
 </html>

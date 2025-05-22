@@ -2,6 +2,10 @@
 session_start();
 include("conn.php");
 
+// Definisci il percorso base all'inizio dello script
+$basePath = dirname($_SERVER['PHP_SELF']);
+if ($basePath == '/') $basePath = '';
+
 // Controlla se l'utente è loggato
 $isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
 
@@ -31,7 +35,8 @@ $cartItems = [];
 $cartTotal = 0;
 if ($conn) {
     $email = mysqli_real_escape_string($conn, $_SESSION['email']);
-    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
+    // Modified query to include product image
+    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id, p.immagine as image 
                  FROM carrello c 
                  JOIN prodotti p ON c.id_prodotto = p.id 
                  WHERE c.email_utente = '$email'";
@@ -39,6 +44,12 @@ if ($conn) {
     
     if ($cartResult) {
         while ($row = mysqli_fetch_assoc($cartResult)) {
+            // Prepend path to image, similar to shop.php
+            if (!empty($row['image'])) {
+                $row['image_url'] = $basePath . '/assets/products/' . $row['image'];
+            } else {
+                $row['image_url'] = $basePath . '/assets/product-placeholder.jpg'; // Default placeholder
+            }
             $cartItems[] = $row;
             $cartTotal += $row['price'] * $row['quantita'];
         }
@@ -64,8 +75,9 @@ if ($isLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo $basePath; ?>">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/cart.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/checkout.css">
     <!-- <style>
         * {
@@ -395,19 +407,19 @@ if ($isLoggedIn) {
             margin-bottom: 8px;
         }
 
-        .hamburger-menu {
+        /* .hamburger-menu { // REMOVED - Should be handled by header.css
             display: none;
-        }
+        } */
 
         @media (max-width: 1024px) {
-            .hamburger-menu {
+            /* .hamburger-menu { // REMOVED - Should be handled by header.css
                 display: block;
                 cursor: pointer;
             }
 
-            .nav-menu {
-                display: none;
-            }
+            .nav-menu { // REMOVED - Should be handled by header.css
+                display: none; 
+            } */
             
             .checkout-container {
                 grid-template-columns: 1fr;
@@ -432,7 +444,7 @@ if ($isLoggedIn) {
             padding: 20px;
         }
         
-        .mobile-menu {
+        /* .mobile-menu { // REMOVED - Should be handled by header.css
             position: fixed;
             top: 0;
             left: 0;
@@ -447,27 +459,27 @@ if ($isLoggedIn) {
             gap: 24px;
         }
 
-        .mobile-menu.active {
+        .mobile-menu.active { // REMOVED - Should be handled by header.css
             display: flex;
         }
 
-        .mobile-menu .nav-link {
+        .mobile-menu .nav-link { // REMOVED - Should be handled by header.css
             font-size: 24px;
             padding: 12px;
         }
 
-        .mobile-menu .auth-buttons {
+        .mobile-menu .auth-buttons { // REMOVED - Should be handled by header.css
             flex-direction: column;
             margin-top: 24px;
         }
 
-        .close-menu {
+        .close-menu { // REMOVED - Should be handled by header.css
             position: absolute;
             top: 32px;
             right: 32px;
             cursor: pointer;
             color: #04CD00;
-        }
+        } */
 
         @keyframes mobileMenuFade {
             from {
@@ -616,6 +628,7 @@ if ($isLoggedIn) {
             <?php else: ?>
                 <?php foreach ($cartItems as $item): ?>
                     <div class="cart-item">
+                        <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="cart-item-image-checkout">
                         <div class="item-details">
                             <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
                             <span class="item-quantity">Quantità: <?php echo htmlspecialchars($item['quantita']); ?></span>

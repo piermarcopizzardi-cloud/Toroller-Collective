@@ -31,10 +31,19 @@ body {
 
 .cart-item {
     display: flex;
-    justify-content: space-between;
+    /* justify-content: space-between; */ /* Adjusted for better image layout */
     align-items: center;
     padding: 16px 0;
     border-bottom: 1px solid #E5E7EB;
+    gap: 15px; /* Added gap for spacing between image and details */
+}
+
+.cart-item-image-checkout {
+    width: 60px; /* Or your preferred size */
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #eee;
 }
 
 .cart-item:last-child {

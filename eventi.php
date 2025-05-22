@@ -87,12 +87,14 @@ if ($conn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eventi - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="style/header.css" rel="stylesheet">
-    <link href="style/eventi.css" rel="stylesheet">
+    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
+    <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet">
+    <link href="<?php echo $basePath; ?>/style/eventi.css" rel="stylesheet">
 </head>
 <body>
     <?php 
-    $basePath = '';
     include("components/header.php"); 
     ?>
 
@@ -186,12 +188,14 @@ if ($conn) {
         </div>
     </div>
 
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
+    <?php /* REMOVED INLINE SCRIPT BLOCK 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
             const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
+            const closeMenu = document.querySelector('.close-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a, .mobile-menu .user-menu a');
 
             function toggleMenu() {
                 mobileMenu.classList.toggle('active');
@@ -206,11 +210,7 @@ if ($conn) {
                 link.addEventListener('click', toggleMenu);
             });
         });
-
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.classList.toggle('active');
-        }
     </script>
+    */ ?>
 </body>
 </html>

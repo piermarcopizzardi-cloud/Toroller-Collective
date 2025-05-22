@@ -5,7 +5,8 @@
 
 .cart-icon {
     cursor: pointer;
-    position: relative; /* Needed for badge positioning */
+   
+   /* Needed for badge positioning */
 }
 
 .cart-badge {

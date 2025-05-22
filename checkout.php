@@ -109,27 +109,50 @@ if ($isLoggedIn) {
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: 24px;
+            gap: 40px;
         }
         
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 33px;
+            gap: 32px;
         }
         
         .nav-link {
-            color: #BDD3C6;
-            font-size: 18px;
+            color: #4B5563;
             text-decoration: none;
-            font-feature-settings: 'kern' 1;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #04CD00;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: left;
+        }
+
+        .nav-link:hover {
+            color: #04CD00;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
         }
 
         .nav-link.active {
             color: #04CD00;
-            font-weight: 600;
+        }
+
+        .nav-link.active::after {
+            transform: scaleX(1);
         }
         
         .nav-link-with-icon {
@@ -141,8 +164,37 @@ if ($isLoggedIn) {
 
         .auth-buttons {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            gap: 16px;
+        }
+
+        .login-btn, .get-started-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn {
+            color: #04CD00;
+            border: 2px solid #04CD00;
+        }
+
+        .login-btn:hover {
+            background-color: #f3fff3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(4, 205, 0, 0.1);
+        }
+
+        .get-started-btn {
+            background-color: #04CD00;
+            color: white;
+        }
+
+        .get-started-btn:hover {
+            background-color: #03b600;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(4, 205, 0, 0.2);
         }
 
         .user-menu {
@@ -152,22 +204,30 @@ if ($isLoggedIn) {
             padding: 8px 16px;
             border: 1px solid #7FE47E;
             border-radius: 30px;
-            white-space: nowrap;
+            transition: all 0.3s ease;
         }
-        
+
+        .user-menu:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(4, 205, 0, 0.1);
+        }
+
         .user-email {
             color: #04CD00;
             font-size: 16px;
             font-weight: 600;
             text-decoration: none;
-            display: inline-block;
         }
-        
+
         .logout-btn {
             color: #BDD3C6;
             text-decoration: none;
             font-size: 14px;
-            display: inline-block;
+            transition: color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            color: #04CD00;
         }
 
         .checkout-container {
@@ -516,6 +576,141 @@ if ($isLoggedIn) {
             cursor: pointer;
             color: #04CD00;
         }
+
+        @keyframes mobileMenuFade {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes cartPopup {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+            animation: mobileMenuFade 0.3s ease;
+        }
+
+        .mobile-menu .nav-link {
+            font-size: 24px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .mobile-menu .nav-link:hover {
+            color: #04CD00;
+        }
+
+        .mobile-menu .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #04CD00;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-menu .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            cursor: pointer;
+            color: #04CD00;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .close-menu:hover {
+            color: #03b100;
+            transform: rotate(90deg);
+        }
+
+        .cart-popup {
+            // ...existing cart popup styles...
+            transform-origin: top right;
+            transition: all 0.3s ease;
+        }
+
+        .cart-popup.active {
+            animation: cartPopup 0.3s ease;
+        }
+
+        .cart-icon {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .cart-icon:hover {
+            transform: translateY(-2px);
+            background-color: #f3fff3;
+            color: #04CD00;
+        }
+
+        .cart-badge {
+            transition: all 0.3s ease;
+        }
+
+        .cart-icon:hover .cart-badge {
+            transform: scale(1.1);
+        }
+
+        /* Responsive styles */
+        @media (max-width: 1024px) {
+            .hamburger-menu {
+                display: block;
+                padding: 8px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }
+
+            .hamburger-menu:hover {
+                background-color: #f3fff3;
+                transform: scale(1.1);
+            }
+
+            .nav-menu {
+                display: none;
+            }
+            
+            .cart-popup {
+                right: -100px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -532,45 +727,13 @@ if ($isLoggedIn) {
                 <div class="nav-link-with-icon">
                     <a class="nav-link active" href="shop.php">Shop</a>
                     <div class="cart-container">
-                        <div class="cart-icon" onclick="toggleCart()">
+                        <div class="cart-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="9" cy="21" r="1"></circle>
                                 <circle cx="20" cy="21" r="1"></circle>
                                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
                             <span class="cart-badge"><?php echo array_sum(array_column($cartItems, 'quantita')); ?></span>
-                        </div>
-                        
-                        <!-- Cart Popup -->
-                        <div id="cartPopup" class="cart-popup">
-                            <div class="cart-popup-header">
-                                <h3>Il tuo carrello</h3>
-                                <span class="close-cart" onclick="toggleCart()">&times;</span>
-                            </div>
-                            <div class="cart-items">
-                                <?php if (!empty($cartItems)): ?>
-                                    <?php foreach ($cartItems as $item): ?>
-                                        <div class="cart-item">
-                                            <div>
-                                                <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
-                                                <div class="cart-item-price">€<?php echo number_format($item['price'], 2, ',', '.'); ?> x <?php echo $item['quantita']; ?></div>
-                                            </div>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="cart_item_id" value="<?php echo $item['id']; ?>">
-                                                <button type="submit" name="remove_from_cart" class="remove-item">&times;</button>
-                                            </form>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <p class="empty-cart">Il carrello è vuoto</p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="cart-footer">
-                                <div class="cart-total">Totale: €<?php echo number_format($cartTotal, 2, ',', '.'); ?></div>
-                                <?php if (!empty($cartItems)): ?>
-                                    <a href="checkout.php" class="checkout-btn">Procedi all'acquisto</a>
-                                <?php endif; ?>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -706,25 +869,7 @@ if ($isLoggedIn) {
             });
         });
 
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.style.display = cartPopup.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Chiudi il popup del carrello quando si clicca fuori
-        document.addEventListener('click', function(event) {
-            const cartPopup = document.getElementById('cartPopup');
-            const cartIcon = document.querySelector('.cart-icon');
-            
-            if (!cartPopup.contains(event.target) && !cartIcon.contains(event.target)) {
-                cartPopup.style.display = 'none';
-            }
-        });
-
-        // Previeni la chiusura quando si clicca dentro il carrello
-        document.getElementById('cartPopup').addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
+        // Cart popup removed in checkout page
 
         function selectPaymentMethod(method) {
             const options = document.querySelectorAll('.payment-option');

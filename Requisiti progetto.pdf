@@ -1,0 +1,87 @@
+Requisiti progetto corso Sviluppo SW 2025
+Il progetto può essere svolto singolarmente o in gruppi (max 2 persone)
+PARTE PROGETTAZIONE CONCETTUALE
+Sviluppo in UML del progetto.
+A partire da una breve descrizione dei requisiti (mezza pagina), produrre un paio di
+storyboard (uno per utente finale e uno per amministratore) e i seguenti diagrammi:
+• use case diagram
+• class diagram (tabelle della base di dati)
+• un esempio di sequence diagram
+• un esempio di Activity diagram
+PARTE SOFTWARE
+Il sito HTML sviluppato nel primo semestre deve essere trasformato in un sito dinamico con
+accesso controllato riservato ad utenti registrati. Deve inoltre avere un amministratore del
+servizio. I contenuti devono essere memorizzati su database.
+Il Database deve avere almeno 2 tabelle
+• La tabella degli utenti che deve usare username come chiave e mantenere mail e
+anagrafica
+• Una tabella DB con i servizi offerti che deve avere almeno le seguenti colonne che per ogni
+singolo servizio:
+- Identificatore
+- Nome
+- Uno o più attributi che permettano di raggruppare i servizi (es Tipo oppure genere, o
+luogo, ….); questo sarà fondamentale per la ricerca a 2 passi (si veda dopo)
+- Descrizione (testuale)
+Al sito quindi devono essere aggiunte componenti dinamiche realizzate in PHP per
+1) Registrazione degli utenti, salvata in modo permanente sul database
+a. b. Form registrazione (con almeno Cognome, username, password, mail)
+Caricamento dati su tabella utenti in DB in cui un attributo (username o mail a
+vostra scelta deve essere usato come identificatore univoco)
+c. Verifica e gestione casi di errore
+i. Dati obbligatori mancanti
+ii. Username già occupato
+iii. Password che deve essere di almeno 8 caratteri
+2) Accesso ai servizi
+2.1 Accesso solo da parte di utenti registrati con verifica password (pagina di
+login)
+2.2 Accesso e servizio gestito con una sessione che si apre al login dell’utente e si
+chiude quando utente esegue esplicito logout (ad esempio con una pagina o un
+pulsante di logout presente in ogni pagina in header o footer)
+2.3 In ogni pagina si deve controllare di essere all’interno della sessione; ovvero un
+utente non deve poter entrare in una pagina intermedia; se cerca di farlo viene
+mandato a pagina di accesso (login)
+2.4 Possibilità per utente di vedere il proprio profilo e cambiare password
+2.5 Ricerca di una informazione/servizio (usando campi testuali o
+radiobox/checkbox/menu a tendina generate dinamicamente dal servizio) e
+visualizzazione formattata (tabella, elenco a vostra scelta) della risposta, con
+gestione corretta dei casi estremi (servizio cercato non esistente)
+2.5 La ricerca deve essere a due passi
+• dapprima utente deve poter cercare i servizi in base ad un qualche criterio
+(esempio: tipo, genere, parole chiave, ..). A vostra scelta questo può essere
+realizzato con una casella di testo o con una radio/checkbox/menu in cui
+vengono elencati i valori possibili per l’attributo su cui si esegue la ricerca
+(select distinct dal database)
+• Visualizzazione di un insieme di risposte senza dettagli, ovvero mostrando
+solo nomi/titoli dei servizi che soddisfano la ricerca
+• Possibilità per l’utente di scegliere una (o più) tra le risposte e conseguente
+visualizzazione della descrizione dettagliata delle risposte scelte
+3) Pagina per amministratore del servizio, con verifica della sua identità (login con
+username e password predefiniti) e possibilità di
+a. Aggiungere/eliminare servizi. L’aggiunta avviene attraverso una form con
+controllo del corretto e completo inserimento dei dati. L’eliminazione può
+avvenire inserendo il titolo o meglio, presentando con radio box i servizi
+presenti e consente a chi amministra di scegliere cosa eliminare
+b. Aggiornare informazioni su uno dei servizi. La soluzione migliore in questo caso
+è presentare un elenco e poi, una volta selezionato il servizio da aggiornare
+presentare una form precompilata con i dati attuali da modificare.
+c. Eliminare utenti.
+L’accesso alle pagine di amministrazione deve essere bloccato per gl utenti; tentativi di
+accesso a tali pagine devono dare messaggio di errore e rimandare alla pagina di login
+utente. Anche in questo caso le pagine di inserimento./rimozione/aggiornamento dei
+servizi devono implementare i controlli di completezza e correttezza dei dati
+Dal punto di vista SW, l’applicazione deve essere testata e non deve bloccarsi, deve essere
+organizzata con funzioni almeno laddove lo stesso codice serva più volte
+Discussione del progetto all’esame (INDIVIDUALE)
+All’esame orale vi verrà chiesto (individualmente) di
+• Spiegare parti di codice
+• Eventualmente discutere come parti di codice dovrebbero essere modificate per cambiare
+aspetti funzionali o di generazione dei HTML
+Non mi interessa la grafica sofisticata o che vengano aggiunte altre funzionalità
+particolari che esulano dai requisiti (nel senso che queste cose non saranno
+oggetto di valutazione), ma il sito deve essere prodotto da voi e non adattato da
+soluzioni generate da altre persone o ancora prodotte con sistemi automatici.
+Non tollererò in alcun modo che non si sia in grado di leggere il proprio codice,
+commentarlo e discutere se e quali parti dovrebbero essere modificate per
+cambiare la risposta del servizio. In caso sia evidente che il sito non è stato prodotto
+personalmente oltre al non superamento dell’esame si potrà incorrere in altri provvedimenti
+disciplinari

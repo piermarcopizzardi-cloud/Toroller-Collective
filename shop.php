@@ -839,7 +839,6 @@ if ($conn) {
         // Inizializza il badge del carrello
         updateCartBadge(<?php echo array_sum(array_column($cartItems, 'quantita')) ?? 0; ?>);
 
-        // Modifica alla funzione toggleCart per reindirizzare direttamente a checkout.php
         function toggleCart(event) {
             if (event) {
                 event.preventDefault();
@@ -848,7 +847,8 @@ if ($conn) {
                 window.location.href = 'login.php';
                 return;
             <?php endif; ?>
-            window.location.href = 'checkout.php';
+            const cartPopup = document.getElementById('cartPopup');
+            cartPopup.classList.toggle('active');
         }
 
         // Gestione dei filtri mobile

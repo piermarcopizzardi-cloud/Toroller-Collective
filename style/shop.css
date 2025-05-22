@@ -21,17 +21,34 @@ a, button, input, select {
     margin-top: 20px;
     display: flex;
     gap: 40px;
+    position: relative; /* Aggiunto per il posizionamento dei filtri */
 }
 
 .filter-sidebar {
     width: 300px;
     flex-shrink: 0;
+    /* Modifiche per il posizionamento laterale fisso */
+    position: fixed;
+    right: -350px; /* Nascosto fuori schermo inizialmente */
+    top: 120px; /* Adatta questo valore in base all'altezza del tuo header */
+    height: calc(100vh - 140px); /* Altezza meno un po' di padding */
+    background-color: transparent; /* MODIFIED: Removed white background */
+    padding: 20px;
+    box-shadow: none; /* MODIFIED: Removed shadow from the sidebar container */
+    z-index: 999;
+    transition: right 0.3s ease-in-out;
+    overflow-y: auto; /* Per scrollare se i filtri sono troppi */
+}
+
+.filter-sidebar.active {
+    right: 20px; /* Mostra la sidebar */
 }
 
 .filter-card {
     background-color: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    /* Rimosso box-shadow per evitare doppie ombre con la sidebar */
+    border: 1px solid #E5E7EB;
     padding: 24px;
     margin-bottom: 24px;
     width: 100%;
@@ -39,7 +56,6 @@ a, button, input, select {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    border: 1px solid #E5E7EB;
 }
 
 .filter-card::before {
@@ -78,6 +94,62 @@ a, button, input, select {
 
 .filter-group:last-child { /* Rimuove il margine inferiore dall'ultimo gruppo di filtri nella card */
     margin-bottom: 0;
+}
+
+/* Styles for search box inside filter card */
+.filter-card .search-box.inside-card {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px; /* Add some space below the search bar */
+    width: 100%; /* Ensure it respects parent's padding */
+    box-sizing: border-box; /* Include padding/border in width */
+}
+
+.filter-card .search-box.inside-card .search-input {
+    flex-grow: 1;
+    padding: 10px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px 0 0 6px; /* Rounded on the left */
+    font-size: 14px;
+    transition: var(--hover-transition);
+    border-right: none; /* Remove right border to blend with button */
+    box-sizing: border-box; /* Include padding/border in width */
+    min-width: 0; /* Allow input to shrink properly in flex layout */
+}
+
+.filter-card .search-box.inside-card .search-input:hover {
+    border-color: #04CD00;
+}
+
+.filter-card .search-box.inside-card .search-input:focus {
+    outline: none;
+    border-color: #04CD00;
+    box-shadow: var(--input-hover-shadow);
+}
+
+.filter-card .search-box.inside-card .search-button {
+    padding: 10px 12px;
+    background-color: #04CD00;
+    border: 1px solid #04CD00; /* Match border with input focus */
+    border-radius: 0 6px 6px 0; /* Rounded on the right */
+    cursor: pointer;
+    transition: var(--hover-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box; /* Include padding/border in width */
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.filter-card .search-box.inside-card .search-button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-bg);
+}
+
+.filter-card .search-box.inside-card .search-button svg {
+    fill: white; /* Make the SVG icon white */
+    width: 16px; /* Ensure size is consistent */
+    height: 16px;
 }
 
 .filter-group-title {
@@ -424,121 +496,33 @@ a, button, input, select {
 }
 
 .mobile-filter-button {
-    display: none;
-    width: 100%;
-    padding: 12px;
-    background-color: #04CD00;
-    color: white;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 12px 24px;
+    background-color: #000;
+    color: #fff;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
-    margin-bottom: 16px;
-    transition: var(--hover-transition);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease-in-out, background-color 0.3s ease; /* Added opacity transition */
 }
 
 .mobile-filter-button:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(var(--hover-y-offset));
-    box-shadow: var(--hover-shadow);
+    background-color: #333;
 }
 
-/* Mobile menu styles */
-.mobile-menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.98);
-    z-index: 1000;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    animation: fadeIn 0.3s ease; /* Added animation */
-}
-
-.mobile-menu.active {
-    display: flex;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes expandLine {
-    from {
-        transform: scaleX(0);
-    }
-    to {
-        transform: scaleX(1);
-    }
-}
-
-.mobile-menu .nav-link {
-    font-size: 24px;
-    padding: 12px;
-    transition: var(--hover-transition);
-    position: relative;
-}
-
-.mobile-menu .nav-link:hover {
-    color: #04CD00;
-}
-
-.mobile-menu .nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #04CD00;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-}
-
-.mobile-menu .nav-link:hover::after {
-    transform: scaleX(1);
-}
-
-.mobile-menu .auth-buttons {
-    flex-direction: column;
-    margin-top: 24px;
-}
-
-.close-menu {
-    position: absolute;
-    top: 32px;
-    right: 32px;
-    cursor: pointer;
-    color: #04CD00;
-    font-size: 24px;
-    transition: color 0.3s ease;
-    transition: var(--hover-transition);
-}
-
-.close-menu:hover {
-    color: #03b100; /* Improved hover feedback */
-    transform: rotate(90deg);
-}
-
-.hamburger-menu {
-    display: none;
-    cursor: pointer;
-    transition: var(--hover-transition);
-}
-
-.hamburger-menu:hover {
-    transform: scale(1.1);
-    color: #04CD00;
+.mobile-filter-button.hidden {
+    opacity: 0;
+    pointer-events: none; /* Prevent interaction when hidden */
 }
 
 /* Responsive styles */
@@ -557,6 +541,7 @@ a, button, input, select {
     .filter-sidebar {
         width: 100%;
         display: none;
+        background-color: #ffffff; /* ADDED: Restore white background for mobile */
     }
 
     .filter-sidebar.active {
@@ -590,6 +575,21 @@ a, button, input, select {
 @media (max-width: 640px) {
     .shop-container {
         padding: 20px;
+        flex-direction: column; /* Stack product section below filters on small screens if filters are not fixed */
+    }
+
+    .filter-sidebar {
+        width: calc(100% - 40px); /* Occupa quasi tutta la larghezza meno il padding */
+        right: -100%; /* Nascosto fuori schermo */
+        top: 0;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        padding-top: 140px; /* MODIFIED: Increased padding-top to clear header (was 60px) */
+    }
+
+    .filter-sidebar.active {
+        right: 0;
     }
 
     .products-header {
@@ -603,11 +603,32 @@ a, button, input, select {
     }
     
     .mobile-filter-button {
-        margin-bottom: 10px;
+        left: 50%; 
+        transform: translateX(-50%); 
+        bottom: 10px;
+        padding: 10px 15px;
+        /* Ensure no margin-bottom here either if it was present */
     }
+}
+
+.close-filters-btn {
+    position: absolute;
+    top: 15px; /* Adjusted for better spacing */
+    right: 20px; /* Adjusted for better spacing */
+    font-size: 28px; /* Slightly larger for easier clicking */
+    font-weight: bold;
+    color: #888; /* Lighter color */
+    cursor: pointer;
+    padding: 0 5px; /* Minimal padding */
+    line-height: 1;
+    transition: color 0.2s ease;
+    z-index: 10; /* Ensure it's above other sidebar content if necessary */
+}
+
+.close-filters-btn:hover {
+    color: #333; /* Darker on hover */
 }
 
 .btn, button, .add-to-cart, .view-details {
     border-radius: 8px;
-    /* ...existing code... */
 }

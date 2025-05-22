@@ -231,6 +231,9 @@ if ($conn) {
 // Ottieni tutte le categorie uniche
 $categories = array_unique(array_column($products, 'category'));
 
+// Ottieni tutti i tipi di prodotto unici
+$productTypes = array_unique(array_column($products, 'name')); // 'name' corresponds to 'tipologia'
+
 // Filtra i prodotti in base ai parametri di ricerca
 $filteredProducts = $products;
 
@@ -243,9 +246,17 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 }
 
 if (isset($_GET['category']) && !empty($_GET['category'])) {
-    $category = $_GET['category'];
-    $filteredProducts = array_filter($filteredProducts, function($product) use ($category) {
-        return $product['category'] === $category;
+    $selectedCategories = (array)$_GET['category']; // Correcting to handle array of categories
+    $filteredProducts = array_filter($filteredProducts, function($product) use ($selectedCategories) {
+        return in_array($product['category'], $selectedCategories);
+    });
+}
+
+// Filtra per tipo di prodotto
+if (isset($_GET['type']) && !empty($_GET['type'])) {
+    $selectedTypes = (array)$_GET['type'];
+    $filteredProducts = array_filter($filteredProducts, function($product) use ($selectedTypes) {
+        return in_array($product['name'], $selectedTypes); // 'name' is 'tipologia'
     });
 }
 
@@ -305,6 +316,9 @@ if ($conn) {
     
     <div class="shop-container">
         <aside class="filter-sidebar" id="filterSidebar">
+            <button class="close-filters-btn" id="closeFiltersButton" aria-label="Chiudi filtri">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
             <!-- Search Form -->
             <div class="filter-card">
                 <h3 class="filter-title">Cerca Prodotti</h3>
@@ -344,6 +358,17 @@ if ($conn) {
                                 <input type="checkbox" name="category[]" value="<?php echo htmlspecialchars($cat); ?>" 
                                        class="category-checkbox" <?php echo (isset($_GET['category']) && in_array($cat, (array)$_GET['category'])) ? 'checked' : ''; ?>>
                                 <span class="category-label"><?php echo htmlspecialchars(ucfirst($cat)); ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <h4 class="filter-group-title">Tipo Prodotto</h4>
+                    <div class="filter-group type-list">
+                        <?php foreach ($productTypes as $type): ?>
+                            <label class="type-item">
+                                <input type="checkbox" name="type[]" value="<?php echo htmlspecialchars($type); ?>" 
+                                       class="type-checkbox" <?php echo (isset($_GET['type']) && in_array($type, (array)$_GET['type'])) ? 'checked' : ''; ?>>
+                                <span class="type-label"><?php echo htmlspecialchars(ucfirst($type)); ?></span>
                             </label>
                         <?php endforeach; ?>
                     </div>
@@ -471,15 +496,18 @@ if ($conn) {
         // Mobile filter button functionality
         const mobileFilterButton = document.getElementById('mobileFilterButton');
         const filterSidebar = document.getElementById('filterSidebar');
+        const closeFiltersButton = document.getElementById('closeFiltersButton'); // Get the new close button
 
-        if (mobileFilterButton && filterSidebar) {
+        if (mobileFilterButton && filterSidebar && closeFiltersButton) {
             mobileFilterButton.addEventListener('click', function() {
-                filterSidebar.classList.toggle('active');
-                if (filterSidebar.classList.contains('active')) {
-                    this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>Nascondi filtri';
-                } else {
-                    this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/></svg>Mostra filtri';
-                }
+                filterSidebar.classList.add('active');
+                mobileFilterButton.classList.add('hidden'); // Hide the main button
+                // No longer changing innerHTML here
+            });
+
+            closeFiltersButton.addEventListener('click', function() {
+                filterSidebar.classList.remove('active');
+                mobileFilterButton.classList.remove('hidden'); // Show the main button
             });
         }
     });

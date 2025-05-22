@@ -103,29 +103,30 @@ body {
     font-weight: 700;
 }
 
-.payment-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.form-group {
+.checkout-container .form-group { /* Scoped to checkout-container */
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.form-label {
+.checkout-container .form-label { /* Scoped to checkout-container */
     font-weight: 600;
     color: #374151;
 }
 
-.form-input {
+.checkout-container .form-input { /* Scoped to checkout-container */
     width: 100%;
     padding: 12px;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     font-size: 16px;
+    /* Ensure this does not affect header elements if they are somehow within checkout-container in terms of DOM */
+    /* Or, if .header is outside .checkout-container, this should not be an issue */
+}
+
+/* Add a more specific selector for form inputs within the payment section if needed */
+.payment-section .form-input {
+    /* Styles specific to payment form inputs if they differ from general .checkout-container .form-input */
 }
 
 .card-details {

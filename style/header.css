@@ -157,6 +157,10 @@ body {
     border: 1px solid #7FE47E;
     border-radius: 30px;
     transition: all 0.3s ease;
+    /* Ensure high specificity by default if other pages are fine */
+    background-color: #ffffff; /* Explicitly set background if needed */
+    height: auto; /* Or a specific height if it's being collapsed */
+    min-height: 40px; /* Example: ensure it has a minimum height */
 }
 
 .header .user-menu:hover {
@@ -253,10 +257,10 @@ body {
 }
 
 .mobile-menu.active {
-    display: flex; /* CRUCIAL: Show when active */
-    opacity: 1;
-    visibility: visible;
-    pointer-events: all; /* Interactive when active */
+    display: flex !important; /* Crucial: Show when active, added !important for admin.php */
+    opacity: 1 !important; /* Added !important for admin.php */
+    visibility: visible !important; /* Added !important for admin.php */
+    pointer-events: all !important; /* Added !important for admin.php */
 }
 
 .mobile-menu .nav-link {
@@ -286,6 +290,38 @@ body {
     width: auto; /* Or set a specific width */
     text-align: center;
     /* Other button styles will be inherited or can be specified here */
+}
+
+/* Styling for user-menu and user-email within the active mobile menu */
+.mobile-menu.active .user-menu {
+    display: flex;
+    flex-direction: row; /* Align items horizontally */
+    align-items: center; /* Vertically center items in the row */
+    gap: 1rem; /* Space between email and logout */
+    padding: 10px 16px; /* Consistent padding */
+    border: 1px solid #7FE47E; /* Green border */
+    border-radius: 20px; /* Rounded border */
+    background-color: #f3fff3; /* Light green background */
+    margin-top: 1rem; /* Space above user menu block */
+}
+
+.mobile-menu.active .user-menu .user-email {
+    color: #04CD00 !important; /* Green text, important to override defaults */
+    font-size: 1.2rem; /* Slightly smaller than nav-links, adjust as needed */
+    font-weight: 600;
+    text-decoration: none;
+    padding: 5px 10px; /* Padding around the email text */
+}
+
+.mobile-menu.active .user-menu .logout-btn {
+    color: red !important; /* Red text for logout */
+    font-size: 1rem;
+    text-decoration: none;
+    padding: 5px 10px;
+}
+
+.mobile-menu.active .user-menu .logout-btn:hover {
+    text-decoration: underline;
 }
 
 .close-menu {

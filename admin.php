@@ -414,23 +414,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body class="admin-page">
     <?php include 'components/header.php'?>
 
-    <div class="mobile-menu">
-        <div class="close-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </div>
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="community.php">Community</a>
-        <a class="nav-link" href="shop.php">Shop</a>
-        <a class="nav-link" href="eventi.php">Eventi</a>
-        
-        <div class="user-menu">
-            <span class="user-email"><?php echo htmlspecialchars($userEmail); ?></span>
-            <a href="index.php?logout=1" class="logout-btn">Logout</a>
-        </div>
-    </div>
-
     <div class="profile-container">
         <h1 class="profile-title">Pannello di Amministrazione</h1>
 
@@ -784,139 +767,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </script>
     </div>
 
+    <!-- Script for admin tab navigation -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
-            const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .user-menu a');
-
-            function toggleMenu() {
-                mobileMenu.classList.toggle('active');
-                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-            }
-
-            hamburger.addEventListener('click', toggleMenu);
-            closeMenu.addEventListener('click', toggleMenu);
-
-            // Close menu when clicking on links
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', toggleMenu);
-            });
-
-            // Tab Navigation
             const tabs = document.querySelectorAll('.admin-tab');
             const sections = document.querySelectorAll('.admin-section');
 
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Remove active class from all tabs and sections
-                    tabs.forEach(t => t.classList.remove('active'));
-                    sections.forEach(s => s.classList.remove('active'));
+            if (tabs.length > 0 && sections.length > 0) {
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        // Remove active class from all tabs and sections
+                        tabs.forEach(t => t.classList.remove('active'));
+                        sections.forEach(s => s.classList.remove('active'));
 
-                    // Add active class to clicked tab and corresponding section
-                    tab.classList.add('active');
-                    const sectionId = tab.getAttribute('data-tab') + 'Section';
-                    document.getElementById(sectionId).classList.add('active');
+                        // Add active class to clicked tab and corresponding section
+                        tab.classList.add('active');
+                        const sectionId = tab.getAttribute('data-tab') + 'Section';
+                        const sectionElement = document.getElementById(sectionId);
+                        if (sectionElement) {
+                            sectionElement.classList.add('active');
+                        } else {
+                            console.error('Admin section element not found for ID:', sectionId);
+                        }
+                    });
                 });
-            });
-
-            // Product editing functionality
-            window.editProduct = function(productId) {
-                // Implement product editing logic here
-                console.log('Editing product:', productId);
-            };
-        });
-
-        function toggleCart() {
-            const cartPopup = document.getElementById('cartPopup');
-            cartPopup.classList.toggle('active');
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Gestione del form di aggiunta evento
-            const addEventForm = document.getElementById('addEventForm');
-            addEventForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                formData.append('action', 'add_event');
-                
-                fetch('admin_actions.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Aggiungi la nuova riga alla tabella
-                        const tbody = document.querySelector('#eventsList tbody');
-                        const newRow = document.createElement('tr');
-                        newRow.dataset.eventId = data.event.id;
-                        newRow.innerHTML = `
-                            <td>${data.event.id}</td>
-                            <td>${data.event.titolo}</td>
-                            <td>${formatDate(data.event.data)}</td>
-                            <td>${data.event.luogo}</td>
-                            <td>
-                                <button onclick="deleteEvent(${data.event.id})" class="delete-btn">Elimina</button>
-                            </td>
-                        `;
-                        tbody.insertBefore(newRow, tbody.firstChild);
-                        
-                        // Reset del form
-                        addEventForm.reset();
-                        
-                        // Mostra messaggio di successo
-                        alert('Evento aggiunto con successo!');
-                    } else {
-                        alert(data.error || 'Errore durante l\'aggiunta dell\'evento');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Errore durante l\'aggiunta dell\'evento');
-                });
-            });
-        });
-
-        function deleteEvent(eventId) {
-            if (!confirm('Sei sicuro di voler eliminare questo evento?')) {
-                return;
+            } else {
+                // This console warning can be helpful for debugging if tabs/sections aren't found
+                // console.warn('Admin tabs or sections not found, tab navigation not initialized.');
             }
-            
-            const formData = new FormData();
-            formData.append('action', 'delete_event');
-            formData.append('event_id', eventId);
-            
-            fetch('admin_actions.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Rimuovi la riga dalla tabella
-                    const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
-                    if (row) {
-                        row.remove();
-                    }
-                    alert('Evento eliminato con successo!');
-                } else {
-                    alert(data.error || 'Errore durante l\'eliminazione dell\'evento');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Errore durante l\'eliminazione dell\'evento');
-            });
-        }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('it-IT');
-        }
+            // Placeholder for product editing functionality if it was part of the removed script
+            // and is not handled by other specific scripts for products.
+            if (typeof window.editProduct === 'undefined') {
+                window.editProduct = function(productId) {
+                    console.log('Editing product (placeholder):', productId);
+                };
+            }
+        });
     </script>
+
     <script src="<?php echo $basePath; ?>/components/header.js"></script>
 </body>
 </html>

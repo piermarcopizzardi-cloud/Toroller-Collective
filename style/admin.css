@@ -77,8 +77,6 @@ body.admin-page {
     margin: 0 auto;
 }
 
-
-
 .admin-title {
     color: #04CD00;
     font-size: 32px;
@@ -403,12 +401,22 @@ input[type="file"] {
     }
 
     .admin-tabs {
-        flex-wrap: wrap;
-        gap: 10px;
+        flex-direction: column; /* Stack tabs vertically */
+        align-items: stretch; /* Make tabs take full width */
+        gap: 0; /* Remove gap if stacking, or adjust as needed */
     }
 
     .admin-tab {
-        padding: 8px 16px;
+        padding: 12px 16px; /* Adjust padding for vertical tabs */
+        border-bottom: 1px solid #E5E7EB; /* Add border between stacked tabs */
+        border-left: 2px solid transparent; /* For active state indication */
+        margin-bottom: 0; /* Remove bottom margin if any */
+    }
+
+    .admin-tab.active {
+        border-bottom-color: #E5E7EB; /* Keep bottom border consistent */
+        border-left-color: #04CD00; /* Indicate active tab on the left */
+        background-color: #f9f9f9; /* Optional: slight background for active tab */
     }
 
     .form-row {

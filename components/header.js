@@ -253,5 +253,5 @@ document.addEventListener('DOMContentLoaded', () => {
     */
    // Ensure badge visibility is correct based on initial count from PHP
    const initialBadgeCount = parseInt(cartBadge.textContent, 10);
-   cartBadge.style.display = initialBadgeCount > 0 ? 'block' : 'none';
+   // cartBadge.style.display = initialBadgeCount > 0 ? 'block' : 'none'; // Commented out to rely on CSS
 });

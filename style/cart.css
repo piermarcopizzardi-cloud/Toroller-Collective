@@ -16,6 +16,7 @@
 }
 
 .cart-badge {
+    display: none !important; /* Added to hide the badge and ensure it overrides JS */
     position: absolute;
     top: -8px;
     right: -8px;

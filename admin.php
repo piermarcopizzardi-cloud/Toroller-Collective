@@ -16,6 +16,13 @@ $conn = null;
 $error = ""; // Initialize error message
 $success = ""; // Initialize success message
 
+if (isset($_GET['success_msg'])) {
+    $success = htmlspecialchars($_GET['success_msg']);
+}
+
+$is_editing_event = false;
+$event_data_for_editing = [];
+
 try {
     $conn = connetti("toroller");
     if (!$conn) {
@@ -25,6 +32,28 @@ try {
     error_log("Errore database: " . $e->getMessage());
     $error = "Errore di connessione al database.";
 }
+
+// Logica per caricare i dati dell'evento se siamo in modalità modifica
+if (isset($_GET['edit_event_id']) && $conn) {
+    // Evita di ricaricare i dati per la modifica se è appena stato inviato un form di update (magari con errori)
+    // Lascia che il form mostri i valori POST-ati in quel caso.
+    // Questa condizione si attiva solo quando si clicca sul link "Modifica".
+    if ($_SERVER["REQUEST_METHOD"] == "GET") { 
+        $edit_event_id = intval($_GET['edit_event_id']);
+        $stmt_edit = mysqli_prepare($conn, "SELECT * FROM eventi WHERE id = ?");
+        mysqli_stmt_bind_param($stmt_edit, "i", $edit_event_id);
+        mysqli_stmt_execute($stmt_edit);
+        $result_edit = mysqli_stmt_get_result($stmt_edit);
+        if ($event_row = mysqli_fetch_assoc($result_edit)) {
+            $event_data_for_editing = $event_row;
+            $is_editing_event = true;
+        } else {
+            $error = "Evento da modificare non trovato.";
+        }
+        mysqli_stmt_close($stmt_edit);
+    }
+}
+
 
 // Gestione Aggiunta Evento (PHP-based)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_event']) && $conn) {
@@ -69,6 +98,112 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_event']) && $conn)
         mysqli_stmt_close($stmt);
     }
 }
+
+// Gestione Modifica Evento (PHP-based)
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_event']) && $conn) {
+    $event_id = intval($_POST['event_id']);
+    $titolo = mysqli_real_escape_string($conn, $_POST['titolo']);
+    $data = $_POST['data']; // Assicurati che il formato sia YYYY-MM-DD
+    $luogo = mysqli_real_escape_string($conn, $_POST['luogo']);
+    $descrizione = mysqli_real_escape_string($conn, $_POST['descrizione']);
+    
+    // Recupera il nome dell'immagine attuale dal DB
+    $stmt_curr_img = mysqli_prepare($conn, "SELECT immagine FROM eventi WHERE id = ?");
+    mysqli_stmt_bind_param($stmt_curr_img, "i", $event_id);
+    mysqli_stmt_execute($stmt_curr_img);
+    $result_curr_img = mysqli_stmt_get_result($stmt_curr_img);
+    $immagine_nome_attuale = null;
+    if ($row_img = mysqli_fetch_assoc($result_curr_img)) {
+        $immagine_nome_attuale = $row_img['immagine'];
+    }
+    mysqli_stmt_close($stmt_curr_img);
+
+    $immagine_per_db = $immagine_nome_attuale; // Inizializza con l'immagine attuale
+
+    // Gestione upload nuova immagine
+    if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = 'assets/events/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true); // Assicura che la directory esista
+        }
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        $file_info = pathinfo($_FILES['immagine']['name']);
+        $file_extension = strtolower($file_info['extension']);
+
+        if (in_array($file_extension, $allowed_extensions)) {
+            $nuova_immagine_nome_temporaneo = uniqid() . '.' . $file_extension;
+            $upload_path = $upload_dir . $nuova_immagine_nome_temporaneo;
+
+            if (move_uploaded_file($_FILES['immagine']['tmp_name'], $upload_path)) {
+                // Nuova immagine caricata con successo
+                // Cancella la vecchia immagine dal server, se esisteva ed era diversa
+                if (!empty($immagine_nome_attuale) && $immagine_nome_attuale !== $nuova_immagine_nome_temporaneo) {
+                    $percorso_vecchia_immagine = $upload_dir . $immagine_nome_attuale;
+                    if (file_exists($percorso_vecchia_immagine)) {
+                        unlink($percorso_vecchia_immagine);
+                    }
+                }
+                $immagine_per_db = $nuova_immagine_nome_temporaneo; // Aggiorna nome file per DB
+            } else {
+                $error = "Errore nel salvataggio della nuova immagine.";
+                // Non cambiare $immagine_per_db, mantiene quella attuale in caso di fallimento del move
+            }
+        } else {
+            $error = "Tipo di file non supportato per la nuova immagine. Sono ammessi solo JPG, JPEG, PNG, GIF.";
+        }
+    } elseif (isset($_FILES['immagine']) && $_FILES['immagine']['error'] !== UPLOAD_ERR_NO_FILE) {
+        // Errore diverso da "nessun file", es. file troppo grande per php.ini
+        $error = "Errore nel caricamento della nuova immagine: cod. " . $_FILES['immagine']['error'];
+    }
+
+    // Procedi con l'aggiornamento del database solo se non ci sono stati errori critici che vogliamo bloccare
+    // L'errore di upload (se presente) verrà mostrato, ma gli altri campi potrebbero essere aggiornati.
+    // Se $error è stato settato da un problema di upload, $immagine_per_db sarà ancora quella vecchia.
+    // Se si vuole bloccare l'update anche dei campi testo in caso di errore upload, aggiungere qui: if(empty($error))
+    
+    $query_update = "UPDATE eventi SET titolo = ?, data = ?, descrizione = ?, luogo = ?, immagine = ? WHERE id = ?";
+    $stmt_update = mysqli_prepare($conn, $query_update);
+    mysqli_stmt_bind_param($stmt_update, "sssssi", $titolo, $data, $descrizione, $luogo, $immagine_per_db, $event_id);
+    
+    if (mysqli_stmt_execute($stmt_update)) {
+        // Se c'era un errore (es. tipo file non valido) ma l'update SQL va a buon fine con la vecchia immagine,
+        // $success sovrascriverebbe $error. Diamo priorità all'errore se presente.
+        if (empty($error)) {
+            $success = "Evento modificato con successo!";
+        }
+        // Redirect per pulire lo stato e i dati POST, e mostrare il messaggio di successo/errore
+        $redirect_url = "admin.php#eventsSection";
+        if (!empty($success)) $redirect_url .= "?success_msg=" . urlencode($success);
+        // Se $error è stato settato (es. per l'immagine) ma l'update testuale è andato a buon fine,
+        // potremmo voler ricaricare la pagina di modifica con l'errore visibile.
+        // Per ora, un redirect semplice. Se l'errore immagine è critico, l'utente vedrà il messaggio.
+        // Se l'update SQL fallisce, $error sarà settato sotto.
+        
+        // Per evitare di perdere $error se l'update SQL ha successo ma c'era un problema con l'immagine:
+        if (!empty($error)) { // Se c'era un errore (es. upload) ma l'SQL è andato bene
+             // Ricarica la pagina di modifica per mostrare l'errore e i dati (non reindirizzare subito)
+             // Per fare questo, dovremmo ripopolare $event_data_for_editing con i dati POST e settare $is_editing_event
+             $_GET['edit_event_id'] = $event_id; // Simula di essere ancora in modifica
+             $is_editing_event = true;
+             // Ripopola $event_data_for_editing con i dati inviati, così il form li mostra
+             $event_data_for_editing = $_POST;
+             $event_data_for_editing['immagine'] = $immagine_per_db; // usa l'immagine che sarebbe andata nel DB
+        } else {
+            header("Location: " . $redirect_url);
+            exit();
+        }
+
+    } else {
+        $error = "Errore durante la modifica dell'evento: " . mysqli_error($conn);
+        // Se l'update fallisce, rimani sulla pagina di modifica con i dati inseriti e l'errore
+        $_GET['edit_event_id'] = $event_id;
+        $is_editing_event = true;
+        $event_data_for_editing = $_POST; // Ripopola con i dati tentati
+        $event_data_for_editing['immagine'] = $immagine_nome_attuale; // Ripristina l'immagine originale in caso di fallimento SQL
+    }
+    mysqli_stmt_close($stmt_update);
+}
+
 
 // Gestione Eliminazione Evento (PHP-based)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_event']) && isset($_POST['event_id']) && $conn) {
@@ -393,37 +528,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="admin-section" id="eventsSection">
             <h2>Gestione Eventi</h2>
             <div class="form-section">
-                <h3>Aggiungi Nuovo Evento</h3>
+                <h3><?php echo $is_editing_event ? 'Modifica Evento' : 'Aggiungi Nuovo Evento'; ?></h3>
                 <div id="messagesEvent">
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger"><?php echo $error; ?></div>
+                    <?php if (!empty($error) && $_SERVER["REQUEST_METHOD"] != "GET"): // Mostra errore solo se non è un GET iniziale per edit ?>
+                        <div class="error-message"><?php echo $error; ?></div>
                     <?php endif; ?>
-                    <?php if (!empty($success)): ?>
-                        <div class="alert alert-success"><?php echo $success; ?></div>
+                    <?php if (!empty($success) && $_SERVER["REQUEST_METHOD"] != "GET"): // Mostra successo solo se non è un GET iniziale ?>
+                        <div class="success-message"><?php echo $success; ?></div>
                     <?php endif; ?>
                 </div>
-                <form id="eventForm" method="POST" action="admin.php" enctype="multipart/form-data">
+                <form id="eventForm" method="POST" action="admin.php#eventsSection" enctype="multipart/form-data">
+                    <?php if ($is_editing_event): ?>
+                        <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event_data_for_editing['id'] ?? ''); ?>">
+                    <?php endif; ?>
+
                     <div class="form-group">
                         <label class="form-label">Titolo</label>
-                        <input type="text" name="titolo" class="form-input" required>
+                        <input type="text" name="titolo" class="form-input" required value="<?php echo htmlspecialchars($is_editing_event ? ($event_data_for_editing['titolo'] ?? '') : ($_POST['titolo'] ?? '')); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Data</label>
-                        <input type="date" name="data" class="form-input" required>
+                        <input type="date" name="data" class="form-input" required value="<?php echo htmlspecialchars($is_editing_event ? ($event_data_for_editing['data'] ?? '') : ($_POST['data'] ?? '')); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Luogo</label>
-                        <input type="text" name="luogo" class="form-input" required>
+                        <input type="text" name="luogo" class="form-input" required value="<?php echo htmlspecialchars($is_editing_event ? ($event_data_for_editing['luogo'] ?? '') : ($_POST['luogo'] ?? '')); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descrizione</label>
-                        <textarea name="descrizione" class="form-input" rows="3" required></textarea>
+                        <textarea name="descrizione" class="form-input" rows="3" required><?php echo htmlspecialchars($is_editing_event ? ($event_data_for_editing['descrizione'] ?? '') : ($_POST['descrizione'] ?? '')); ?></textarea>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Immagine (opzionale)</label>
+                        <label class="form-label">Immagine <?php echo $is_editing_event ? '(opzionale, per sostituire)' : '(opzionale)'; ?></label>
+                        <?php if ($is_editing_event && !empty($event_data_for_editing['immagine'])): ?>
+                            <p style="margin-bottom: 5px;">Immagine attuale: <br><img src="assets/events/<?php echo htmlspecialchars($event_data_for_editing['immagine']); ?>" height="70" alt="Immagine attuale" style="margin-top:5px; border-radius:4px;"></p>
+                            <p><small>Scegli un nuovo file solo se vuoi sostituire l'immagine attuale.</small></p>
+                        <?php endif; ?>
                         <input type="file" name="immagine" class="form-input" accept="image/*">
                     </div>
-                    <button type="submit" name="add_event" class="submit-btn">Aggiungi Evento</button>
+                    
+                    <?php if ($is_editing_event): ?>
+                        <button type="submit" name="update_event" class="submit-btn">Modifica Evento</button>
+                        <a href="admin.php#eventsSection" class="submit-btn" style="background-color: #6c757d; margin-left: 10px; text-decoration: none;">Annulla</a>
+                    <?php else: ?>
+                        <button type="submit" name="add_event" class="submit-btn">Aggiungi Evento</button>
+                    <?php endif; ?>
                 </form>
             </div>
 
@@ -454,13 +603,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     echo "<td>" . htmlspecialchars(substr($event['descrizione'], 0, 50)) . (strlen($event['descrizione']) > 50 ? '...' : '') . "</td>";
                                     echo "<td>";
                                     if (!empty($event['immagine'])) {
-                                        echo "<img src='assets/events/" . htmlspecialchars($event['immagine']) . "' height='50'>";
+                                        echo "<img src='assets/events/" . htmlspecialchars($event['immagine']) . "' height='50' style='border-radius:4px;'>";
                                     } else {
                                         echo "N/A";
                                     }
                                     echo "</td>";
-                                    echo "<td>";
-                                    echo "<form method='POST' action='admin.php' style='display:inline-block;'>";
+                                    echo "<td class='action-buttons'>";
+                                    echo "<a href='admin.php?edit_event_id=" . $event['id'] . "#eventForm' class='edit-btn' style='text-decoration:none; color:white; display:inline-block; margin-right:5px; padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;'>Modifica</a>";
+                                    echo "<form method='POST' action='admin.php#eventsSection' style='display:inline-block;'>";
                                     echo "<input type='hidden' name='event_id' value='" . $event['id'] . "'>";
                                     echo "<button type='submit' name='delete_event' class='delete-btn' onclick='return confirm(\"Sei sicuro di voler eliminare questo evento?\")'>Elimina</button>";
                                     echo "</form>";

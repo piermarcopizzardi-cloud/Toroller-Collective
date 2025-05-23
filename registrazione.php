@@ -3,7 +3,7 @@ session_start();
 include("conn.php");
 
 // Controlla se l'utente è loggato
-$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']); // Email is still used for session login tracking as per original logic
 
 // Se l'utente ha cliccato su logout
 if (isset($_GET['logout'])) {
@@ -14,7 +14,7 @@ if (isset($_GET['logout'])) {
 
 $conn = null;
 try {
-    $conn = connetti("toroller");
+    $conn = connetti("toroller_semplificato"); // Updated DB name
     if (!$conn) {
         throw new Exception("Errore di connessione al database");
     }
@@ -24,33 +24,19 @@ try {
 
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
-$userName = '';
-$cartItems = [];
-$cartTotal = 0;
+$userNameDisplay = ''; // Changed variable name for clarity
 
 if ($isLoggedIn && $conn) {
-    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
-    $query = "SELECT nome, email FROM utente WHERE email = '$email'";
+    $email_session = mysqli_real_escape_string($conn, $_SESSION['email']);
+    // Fetch username based on email from session for display purposes if needed
+    $query = "SELECT username, nome FROM utente WHERE email = '$email_session'"; 
     $result = mysqli_query($conn, $query);
     if ($result && mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
-        $userEmail = $user['email'];
-        $userName = $user['nome'];
+        $userEmail = $email_session; // Keep email for session context
+        $userNameDisplay = $user['username']; // Display username
     }
-
-    // Ottieni il contenuto del carrello per l'utente loggato
-    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
-                 FROM carrello c 
-                 JOIN prodotti p ON c.id_prodotto = p.id 
-                 WHERE c.email_utente = '$email'";
-    $cartResult = mysqli_query($conn, $cartQuery);
-    
-    if ($cartResult) {
-        while ($row = mysqli_fetch_assoc($cartResult)) {
-            $cartItems[] = $row;
-            $cartTotal += $row['price'] * $row['quantita'];
-        }
-    }
+    // Removed cart logic
 }
 
 if ($conn) {
@@ -60,8 +46,8 @@ if ($conn) {
 // Initialize variables
 $name = "";
 $surname = "";
-$email = "";
-$birthdate = "";
+$username_form = ""; // New variable for username from form
+$email_form = ""; // New variable for email from form
 $error = "";
 $success = "";
 
@@ -70,15 +56,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get form data
     $name = trim($_POST["name"]);
     $surname = trim($_POST["surname"]);
-    $email = trim($_POST["email"]);
-    $birthdate = $_POST["birthdate"];
+    $username_form = trim($_POST["username"]); // Get username
+    $email_form = trim($_POST["email"]); // Get email
     $password = $_POST["password"];
     $confirm_password = $_POST["confirm_password"];
     
     // Basic validation
-    if (empty($name) || empty($surname) || empty($email) || empty($birthdate) || empty($password) || empty($confirm_password)) {
+    if (empty($name) || empty($surname) || empty($username_form) || empty($email_form) || empty($password) || empty($confirm_password)) {
         $error = "Tutti i campi sono obbligatori.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    } elseif (!filter_var($email_form, FILTER_VALIDATE_EMAIL)) {
         $error = "Formato email non valido.";
     } elseif (strlen($password) < 8) {
         $error = "La password deve contenere almeno 8 caratteri.";
@@ -86,41 +72,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Le password non corrispondono.";
     } else {
         // Database connection
-        $conn = connetti("toroller");
+        $conn = connetti("toroller_semplificato"); // Updated DB name
         
         // Check connection
         if (!$conn) {
             $error = "Errore di connessione al database";
         } else {
+            // Check if username already exists
+            $username_check = mysqli_real_escape_string($conn, $username_form);
+            $query_check_username = "SELECT username FROM utente WHERE username = '$username_check'";
+            $result_check_username = mysqli_query($conn, $query_check_username);
+
             // Check if email already exists
-            $email = mysqli_real_escape_string($conn, $email);
-            $query = "SELECT email FROM utente WHERE email = '$email'";
-            $result = mysqli_query($conn, $query);
+            $email_check = mysqli_real_escape_string($conn, $email_form);
+            $query_check_email = "SELECT email FROM utente WHERE email = '$email_check'";
+            $result_check_email = mysqli_query($conn, $query_check_email);
             
-            if (!$result) {
-                $error = "Errore durante la verifica dell'email: " . mysqli_error($conn);
-            } else if (mysqli_num_rows($result) > 0) {
+            if (!$result_check_username || !$result_check_email) {
+                $error = "Errore durante la verifica dell'utente: " . mysqli_error($conn);
+            } else if (mysqli_num_rows($result_check_username) > 0) {
+                $error = "Username già registrato. Prova con un altro username.";
+            } else if (mysqli_num_rows($result_check_email) > 0) {
                 $error = "Email già registrata. Prova con un'altra email.";
-            } else {
+            }
+            else {
                 // Hash password
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $name = mysqli_real_escape_string($conn, $name);
-                $surname = mysqli_real_escape_string($conn, $surname);
-                $birthdate = mysqli_real_escape_string($conn, $birthdate);
+                $name_db = mysqli_real_escape_string($conn, $name);
+                $surname_db = mysqli_real_escape_string($conn, $surname);
+                $username_db = mysqli_real_escape_string($conn, $username_form);
+                $email_db = mysqli_real_escape_string($conn, $email_form);
                 
-                // Insert new user
-                $query = "INSERT INTO utente (nome, cognome, email, password, data_nascita) VALUES ('$name', '$surname', '$email', '$hashed_password', '$birthdate')";
+                // Insert new user (removed data_nascita)
+                $query_insert = "INSERT INTO utente (nome, cognome, username, email, password) VALUES ('$name_db', '$surname_db', '$username_db', '$email_db', '$hashed_password')";
                 
-                error_log("Query di registrazione: " . $query);
+                error_log("Query di registrazione: " . $query_insert);
                 
-                if (!mysqli_query($conn, $query)) {
+                if (!mysqli_query($conn, $query_insert)) {
                     $error = "Errore durante la registrazione: " . mysqli_error($conn);
                     error_log("Errore MySQL: " . mysqli_error($conn));
                 } else {
                     error_log("Registrazione completata con successo");
                     // Set success message in session so it persists after redirect
                     $_SESSION['registration_success'] = true;
-                    header("Location: login.php");
+                    header("Location: login.php"); // Redirect to login page
                     exit();
                 }
             }
@@ -131,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Check for success message from registration
 if (isset($_SESSION['registration_success'])) {
-   
+    // $success = "Registrazione completata con successo! Ora puoi effettuare il login."; // This message was originally intended for the registration page, but user is redirected.
     unset($_SESSION['registration_success']); // Clear the message
 }
 ?>
@@ -147,14 +142,14 @@ if (isset($_SESSION['registration_success'])) {
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link href="<?php echo $basePath; ?>/style/registrazione.css" rel="stylesheet">
     <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
-    <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet">
+    <!-- <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet"> Removed cart.css -->
 </head>
 <body>
     <?php include 'components/header.php'?>
     
     <div class="main-content">
         <div class="registration-form-container">
-            <h1 class="main-heading">Unisciti alla nostra community</h1>
+            <h1 class="main-heading">Unisciti a noi</h1> <!-- Simplified heading -->
             
             <form class="registration-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                 <?php if (!empty($error)): ?>
@@ -167,6 +162,7 @@ if (isset($_SESSION['registration_success'])) {
                     </div>
                 <?php endif; ?>
                 
+                <?php /* Success message is handled by redirecting to login now
                 <?php if (!empty($success)): ?>
                     <div class="success-message">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -176,6 +172,7 @@ if (isset($_SESSION['registration_success'])) {
                         <?php echo $success; ?>
                     </div>
                 <?php endif; ?>
+                */ ?>
                 
                 <div class="form-row">
                     <div class="form-group">
@@ -190,68 +187,37 @@ if (isset($_SESSION['registration_success'])) {
                 </div>
                 
                 <div class="form-row">
+                     <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Scegli un username" class="form-input" value="<?php echo htmlspecialchars($username_form); ?>" required>
+                    </div>
                     <div class="form-group">
                         <label for="email" class="form-label">E-mail</label>
-                        <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo htmlspecialchars($email); ?>" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="birthdate" class="form-label">Data di nascita</label>
-                        <input type="date" id="birthdate" name="birthdate" class="form-input" value="<?php echo htmlspecialchars($birthdate); ?>" required>
+                        <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo htmlspecialchars($email_form); ?>" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Almeno 8 caratteri" class="form-input" required>
+                        <input type="password" id="password" name="password" placeholder="Min. 8 caratteri" class="form-input" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="confirm_password" class="form-label">Conferma Password</label>
-                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Conferma la tua password" class="form-input" required>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Ripeti la password" class="form-input" required>
                     </div>
                 </div>
-                
-                <button type="submit" class="submit-btn">Registrati</button>
-                
-                <div class="login-link">
-                    Hai già un account? <a href="login.php">Accedi</a>
-                </div>
+
+                <button type="submit" class="submit-button">Registrati</button>
             </form>
+            
+            <p class="login-link">Hai già un account? <a href="login.php">Accedi</a></p>
         </div>
     </div>
     
-    <div class="images-container">
-        <img src="assets/image-left.png" alt="" class="image-left">
-        <img src="assets/image-right.png" alt="" class="image-right">
-    </div>
+    <?php include 'components/footer.php'; ?>
+
     <script src="<?php echo $basePath; ?>/components/header.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
-            const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
-
-            function toggleMenu() {
-                mobileMenu.classList.toggle('active');
-                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-            }
-
-            hamburger.addEventListener('click', toggleMenu);
-            closeMenu.addEventListener('click', toggleMenu);
-
-            // Close menu when clicking on links
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', toggleMenu);
-            });
-        });
-
-        // function toggleCart() {
-        //     const cartPopup = document.getElementById('cartPopup');
-        //     cartPopup.classList.toggle('active');
-        // }
-    </script>
 </body>
 </html>

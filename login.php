@@ -14,7 +14,7 @@ if (isset($_GET['logout'])) {
 
 $conn = null;
 try {
-    $conn = connetti("toroller");
+    $conn = connetti("toroller_semplificato"); // Corrected DB name
     if (!$conn) {
         throw new Exception("Errore di connessione al database");
     }
@@ -25,32 +25,19 @@ try {
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
 $userName = '';
-$cartItems = [];
-$cartTotal = 0;
+// Removed cart logic
 
 if ($isLoggedIn && $conn) {
-    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
-    $query = "SELECT nome, email FROM utente WHERE email = '$email'";
+    $email_session = mysqli_real_escape_string($conn, $_SESSION['email']);
+    // Fetch username based on email from session for display purposes if needed
+    $query = "SELECT username, nome FROM utente WHERE email = '$email_session'"; 
     $result = mysqli_query($conn, $query);
     if ($result && mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
-        $userEmail = $user['email'];
-        $userName = $user['nome'];
+        $userEmail = $email_session; // Keep email for session context
+        $userName = $user['username']; // Display username
     }
-
-    // Ottieni il contenuto del carrello per l'utente loggato
-    $cartQuery = "SELECT c.id, c.quantita, p.tipologia as name, p.prezzo as price, p.id as product_id 
-                 FROM carrello c 
-                 JOIN prodotti p ON c.id_prodotto = p.id 
-                 WHERE c.email_utente = '$email'";
-    $cartResult = mysqli_query($conn, $cartQuery);
-    
-    if ($cartResult) {
-        while ($row = mysqli_fetch_assoc($cartResult)) {
-            $cartItems[] = $row;
-            $cartTotal += $row['price'] * $row['quantita'];
-        }
-    }
+    // Removed cart logic
 }
 
 if ($conn) {
@@ -68,19 +55,19 @@ $error = "";
 
 // Procedi solo se il form è stato inviato
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $conn = connetti("toroller");
+    $conn = connetti("toroller_semplificato"); // Corrected DB name
     
     if (!$conn) {
         $error = "Errore di connessione al database";
     } else {
-        $email = mysqli_real_escape_string($conn, $_POST["email"]);
-        $password = mysqli_real_escape_string($conn, $_POST["password"]);
+        $email_form = mysqli_real_escape_string($conn, $_POST["email"]);
+        $password_form = mysqli_real_escape_string($conn, $_POST["password"]);
         
-        if (empty($email) || empty($password)) {
+        if (empty($email_form) || empty($password_form)) {
             $error = "Per favore, compila tutti i campi.";
         } else {
             // Verifica se l'utente esiste
-            $sql = "SELECT * FROM utente WHERE email = '$email'";
+            $sql = "SELECT * FROM utente WHERE email = '$email_form'";
             $ris = mysqli_query($conn, $sql);
             
             if (!$ris) {
@@ -92,9 +79,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } else {
                     // Verifica la password
                     $user = mysqli_fetch_assoc($ris);
-                    if (password_verify($password, $user['password'])) {
+                    if (password_verify($password_form, $user['password'])) {
                         // Login successful
-                        $_SESSION['email'] = $email;
+                        $_SESSION['email'] = $email_form;
                         $_SESSION['password'] = $user['password']; // Store hashed password
                         $_SESSION['is_admin'] = $user['amministratore'] == 1; // Salva se l'utente è admin
                         header("Location: index.php");
@@ -128,34 +115,12 @@ if (isset($_SESSION['registration_success'])) {
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link href="<?php echo $basePath; ?>/style/login.css" rel="stylesheet">
     <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
-    <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet">
+    <!-- <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet"> Removed cart.css -->
 </head>
 <body>
     <?php include 'components/header.php'?>
 
-    <div class="mobile-menu">
-        <div class="close-menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </div>
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="community.php">Community</a>
-        <a class="nav-link" href="shop.php">Shop</a>
-        <a class="nav-link active" href="eventi.php">Eventi</a>
-        
-        <div class="auth-buttons">
-            <?php if ($isLoggedIn): ?>
-            <div class="user-menu">
-                <a href="utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
-                <a href="?logout=1" class="logout-btn">Logout</a>
-            </div>
-            <?php else: ?>
-            <a href="login.php" class="login-btn">Login</a>
-            <a href="registrazione.php" class="get-started-btn">Get started</a>
-            <?php endif; ?>
-        </div>
-    </div>
+    <!-- Removed old mobile menu section as it's handled by header.php -->
     
     <div class="main-content">
         <div class="left-section">
@@ -179,7 +144,7 @@ if (isset($_SESSION['registration_success'])) {
                             <path d="M13 7V19M7 13H19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <p class="feature-text">Gestisci i tuoi ordini e le tue attività</p>
+                    <p class="feature-text">Gestisci i tuoi servizi</p> <!-- Updated text -->
                 </div>
 
                 <div class="feature">
@@ -190,7 +155,7 @@ if (isset($_SESSION['registration_success'])) {
                             <path d="M13 5V7M13 17V19" stroke="white" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </div>
-                    <p class="feature-text">Partecipa alla community e agli eventi</p>
+                    <p class="feature-text">Esplora i servizi disponibili</p> <!-- Updated text -->
                 </div>
             </div>
         </div>
@@ -205,10 +170,10 @@ if (isset($_SESSION['registration_success'])) {
                     <?php echo $error; ?>
                 </div>
             <?php endif; ?>
-
-            <?php if (!empty($success)): ?>
+            
+            <?php if (isset($success)): ?>
                 <div class="success-message">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="10" cy="10" r="10" fill="#E8F5E9"/>
                         <path d="M6 10L9 13L14 7" stroke="#28A745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -216,47 +181,27 @@ if (isset($_SESSION['registration_success'])) {
                 </div>
             <?php endif; ?>
 
-            <form class="login-form" method="POST" action="">
+            <form class="login-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                 <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" placeholder="Inserisci la tua email" required>
+                    <label for="email" class="form-label">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" required>
                 </div>
-
+                
                 <div class="form-group">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Inserisci la tua password" required>
+                    <input type="password" id="password" name="password" placeholder="La tua password" class="form-input" required>
                 </div>
-
-                <button type="submit" class="submit-btn">Accedi</button>
-
-                <div class="form-footer">
-                    <p>Non hai un account? <a href="registrazione.php" class="link-primary">Registrati</a></p>
-                </div>
+                
+                <button type="submit" class="submit-button">Accedi</button>
             </form>
+            
+            <p class="register-link">Non hai un account? <a href="registrazione.php">Registrati</a></p>
         </div>
-    </div>    
+    </div>
+    
+    <?php include 'components/footer.php'; ?>
+
     <script src="<?php echo $basePath; ?>/components/header.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger-menu');
-            const closeMenu = document.querySelector('.close-menu');
-            const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileLinks = document.querySelectorAll('.mobile-menu .nav-link, .mobile-menu .auth-buttons a');
-
-            function toggleMenu() {
-                mobileMenu.classList.toggle('active');
-                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-            }
-
-            hamburger.addEventListener('click', toggleMenu);
-            closeMenu.addEventListener('click', toggleMenu);
-
-            // Close menu when clicking on links
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', toggleMenu);
-            });
-        });
-    </script>
 </body>
 </html>
 

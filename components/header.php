@@ -10,9 +10,10 @@ if ($basePath == '/') $basePath = '';
 
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
+$isAdmin = false; // Inizializza isAdmin
 if ($isLoggedIn && isset($_SESSION['email'])) {
     include_once(__DIR__ . "/../conn.php");
-    $conn = connetti('toroller');
+    $conn = connetti('toroller_semplificato'); // Corrected database name
     
     if ($conn) {
         $email = mysqli_real_escape_string($conn, $_SESSION['email']);
@@ -23,18 +24,7 @@ if ($isLoggedIn && isset($_SESSION['email'])) {
             $userEmail = $user['email'];
             $isAdmin = $user['amministratore'] == 1;
         }
-    }
-}
-
-// Get cart items count if logged in
-$cartCount = 0;
-if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
-    $email = mysqli_real_escape_string($conn, $_SESSION['email']);
-    $cartQuery = "SELECT SUM(quantita) as total FROM carrello WHERE email_utente = '$email'";
-    $cartResult = mysqli_query($conn, $cartQuery);
-    if ($cartResult) {
-        $row = mysqli_fetch_assoc($cartResult);
-        $cartCount = $row['total'] ?: 0;
+        // Non chiudere la connessione qui se serve ancora
     }
 }
 ?>
@@ -48,43 +38,12 @@ if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
     <div class="nav-menu">
         <div class="nav-links">
             <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/index.php">Home</a>
-            <a class="nav-link community-link <?php echo basename($_SERVER['PHP_SELF']) === 'community.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/community.php" data-logged-in="<?php echo $isLoggedIn ? 'true' : 'false'; ?>">Community</a>
-            <div class="nav-link-with-icon">
-                <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' || basename($_SERVER['PHP_SELF']) === 'checkout.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
-                <div class="cart-container">
-                    <div id="cartIcon" class="cart-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="9" cy="21" r="1"></circle>
-                            <circle cx="20" cy="21" r="1"></circle>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                        </svg>
-                        <span id="cartBadge" class="cart-badge"><?php echo $cartCount > 0 ? $cartCount : '0'; ?></span>
-                    </div>
-                    <div id="cartPopup" class="cart-popup">
-                        <div class="cart-popup-header">
-                            <h3>Il tuo Carrello</h3>
-                            <button id="closeCartPopup" class="close-cart-popup">&times;</button>
-                        </div>
-                        <div id="cartPopupItems" class="cart-items">
-                            <!-- Cart items will be loaded here by JavaScript -->
-                            <p class="empty-cart">Il tuo carrello è vuoto.</p>
-                        </div>
-                        <div class="cart-summary">
-                            <div id="cartPopupTotal" class="cart-total">
-                                <span>Totale:</span>
-                                <span>€0.00</span>
-                            </div>
-                            <button id="cartPopupCheckoutBtn" class="checkout-button">Vai alla Cassa</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'eventi.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/eventi.php">Eventi</a>
+            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
         </div>
         
         <?php if ($isLoggedIn): ?>
             <div class="user-menu">
-                <?php if (isset($isAdmin) && $isAdmin): ?>
+                <?php if ($isAdmin): // Usa la variabile $isAdmin correttamente inizializzata ?>
                     <a href="<?php echo $basePath; ?>/admin.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
                 <?php else: ?>
                     <a href="<?php echo $basePath; ?>/utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
@@ -98,40 +57,43 @@ if ($isLoggedIn && isset($_SESSION['email']) && $conn) {
             </div>
         <?php endif; ?>
     </div>
-    
-    <div class="hamburger-menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-    </div>
-</div>
 
-<div class="mobile-menu">
-    <div class="close-menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    <!-- Hamburger Menu -->
+    <div class="hamburger-menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
     </div>
-    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/index.php">Home</a>
-    <?php if ($isLoggedIn): ?>
-        <a class="nav-link community-link <?php echo basename($_SERVER['PHP_SELF']) === 'community.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/community.php">Community</a>
-    <?php endif; ?>
-    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
-    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'eventi.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/eventi.php">Eventi</a>
-    
-    <?php if ($isLoggedIn): ?>
-        <div class="user-menu">
-            <?php if (isset($isAdmin) && $isAdmin): ?>
-                <a href="<?php echo $basePath; ?>/admin.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+
+    <!-- Mobile Menu (nascosto di default) -->
+    <div class="mobile-menu">
+        <div class="close-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+        <div class="mobile-nav-links">
+            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/index.php">Home</a>
+            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'shop.php' ? 'active' : ''; ?>" href="<?php echo $basePath; ?>/shop.php">Shop</a>
+        </div>
+        <div class="mobile-auth-buttons">
+            <?php if ($isLoggedIn): ?>
+                <div class="user-menu-mobile">
+                    <?php if ($isAdmin): ?>
+                        <a href="<?php echo $basePath; ?>/admin.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                    <?php else: ?>
+                        <a href="<?php echo $basePath; ?>/utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                    <?php endif; ?>
+                    <a href="<?php echo $basePath; ?>/?logout=1" class="logout-btn">Logout</a>
+                </div>
             <?php else: ?>
-                <a href="<?php echo $basePath; ?>/utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                <a href="<?php echo $basePath; ?>/login.php" class="login-btn">Login</a>
+                <a href="<?php echo $basePath; ?>/registrazione.php" class="get-started-btn">Get started</a>
             <?php endif; ?>
-            <a href="<?php echo $basePath; ?>/?logout=1" class="logout-btn">Logout</a>
         </div>
-    <?php else: ?>
-        <div class="auth-buttons">
-            <a href="<?php echo $basePath; ?>/login.php" class="login-btn">Login</a>
-            <a href="<?php echo $basePath; ?>/registrazione.php" class="get-started-btn">Get started</a>
-        </div>
-    <?php endif; ?>
+    </div>
 </div>
+<script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>

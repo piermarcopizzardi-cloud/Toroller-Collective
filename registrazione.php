@@ -213,11 +213,9 @@ if (isset($_SESSION['registration_success'])) {
             </form>
             
             <p class="login-link">Hai già un account? <a href="login.php">Accedi</a></p>
-        </div>
+    </div>
     </div>
     
-    <?php include 'components/footer.php'; ?>
-
     <script src="<?php echo $basePath; ?>/components/header.js"></script>
 </body>
 </html>

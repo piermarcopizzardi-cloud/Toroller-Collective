@@ -197,11 +197,9 @@ if (isset($_SESSION['registration_success'])) {
             </form>
             
             <p class="register-link">Non hai un account? <a href="registrazione.php">Registrati</a></p>
-        </div>
+    </div>
     </div>
     
-    <?php include 'components/footer.php'; ?>
-
     <script src="<?php echo $basePath; ?>/components/header.js"></script>
 </body>
 </html>

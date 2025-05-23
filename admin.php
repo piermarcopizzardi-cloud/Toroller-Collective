@@ -74,56 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user']) && isse
         mysqli_begin_transaction($conn);
 
         try {
-            // Get all topic IDs created by the user
-            $query_get_topic_ids = "SELECT id FROM forum_topics WHERE user_email = ?";
-            $stmt_get_topic_ids = mysqli_prepare($conn, $query_get_topic_ids);
-            mysqli_stmt_bind_param($stmt_get_topic_ids, "s", $user_email_to_delete);
-            mysqli_stmt_execute($stmt_get_topic_ids);
-            $result_topic_ids = mysqli_stmt_get_result($stmt_get_topic_ids);
-            $topic_ids_for_user = [];
-            while ($row = mysqli_fetch_assoc($result_topic_ids)) {
-                $topic_ids_for_user[] = $row['id'];
-            }
-            mysqli_stmt_close($stmt_get_topic_ids);
-
-            // If the user has created topics, delete all replies to those topics first
-            if (!empty($topic_ids_for_user)) {
-                $placeholders = implode(',', array_fill(0, count($topic_ids_for_user), '?'));
-                // Determine types for bind_param. Assuming topic IDs are integers.
-                $types = str_repeat('i', count($topic_ids_for_user)); 
-
-                $query_delete_replies_to_user_topics = "DELETE FROM forum_replies WHERE topic_id IN ($placeholders)";
-                $stmt_delete_replies_to_user_topics = mysqli_prepare($conn, $query_delete_replies_to_user_topics);
-                // Bind parameters dynamically
-                mysqli_stmt_bind_param($stmt_delete_replies_to_user_topics, $types, ...$topic_ids_for_user);
-                mysqli_stmt_execute($stmt_delete_replies_to_user_topics);
-                mysqli_stmt_close($stmt_delete_replies_to_user_topics);
-            }
-
-            // Then, delete any remaining replies made directly by the user (e.g., to other users' topics)
-            // This might be redundant if the user only replied to their own topics (covered above), 
-            // but ensures all replies by this user are gone if they replied to topics by others.
-            $query_delete_user_own_replies = "DELETE FROM forum_replies WHERE user_email = ?";
-            $stmt_delete_user_own_replies = mysqli_prepare($conn, $query_delete_user_own_replies);
-            mysqli_stmt_bind_param($stmt_delete_user_own_replies, "s", $user_email_to_delete);
-            mysqli_stmt_execute($stmt_delete_user_own_replies);
-            mysqli_stmt_close($stmt_delete_user_own_replies);
-
-            // Now, delete the topics created by the user
-            $query_delete_user_topics = "DELETE FROM forum_topics WHERE user_email = ?";
-            $stmt_delete_user_topics = mysqli_prepare($conn, $query_delete_user_topics);
-            mysqli_stmt_bind_param($stmt_delete_user_topics, "s", $user_email_to_delete);
-            mysqli_stmt_execute($stmt_delete_user_topics);
-            mysqli_stmt_close($stmt_delete_user_topics);
-
-            // Delete records from ordini
-            $query_delete_orders = "DELETE FROM ordini WHERE email_utente = ?";
-            $stmt_delete_orders = mysqli_prepare($conn, $query_delete_orders);
-            mysqli_stmt_bind_param($stmt_delete_orders, "s", $user_email_to_delete);
-            mysqli_stmt_execute($stmt_delete_orders);
-            mysqli_stmt_close($stmt_delete_orders);
-
-            // 4. Elimina l'utente da utente
+            // Elimina l'utente da utente
             $query_delete_user = "DELETE FROM utente WHERE email = ?";
             $stmt_delete_user = mysqli_prepare($conn, $query_delete_user);
             mysqli_stmt_bind_param($stmt_delete_user, "s", $user_email_to_delete);
@@ -131,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user']) && isse
             if (mysqli_stmt_execute($stmt_delete_user)) {
                 if (mysqli_stmt_affected_rows($stmt_delete_user) > 0) {
                     mysqli_commit($conn); // Conferma la transazione
-                    $success = "Utente e record correlati eliminati con successo!";
+                    $success = "Utente eliminato con successo!";
                 } else {
                     mysqli_rollback($conn); // Annulla la transazione
                     $error = "Utente non trovato o già eliminato.";

@@ -12,10 +12,25 @@ function checkAdmin($conn) {
     $email = $_SESSION['email'];
     $query = "SELECT amministratore FROM utente WHERE email = ?";
     $stmt = mysqli_prepare($conn, $query);
+
+    if (!$stmt) {
+        http_response_code(500);
+        // Log the actual MySQL error for debugging
+        error_log("admin_actions.php - checkAdmin - mysqli_prepare failed: " . mysqli_error($conn));
+        die(json_encode(['error' => 'Errore interno del server (DB Prepare)']));
+    }
+
     mysqli_stmt_bind_param($stmt, "s", $email);
-    mysqli_stmt_execute($stmt);
+    if (!mysqli_stmt_execute($stmt)) {
+        http_response_code(500);
+        error_log("admin_actions.php - checkAdmin - mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
+        mysqli_stmt_close($stmt);
+        die(json_encode(['error' => 'Errore interno del server (DB Execute)']));
+    }
+    
     $result = mysqli_stmt_get_result($stmt);
     $user = mysqli_fetch_assoc($result);
+    mysqli_stmt_close($stmt); // Close statement after fetching
     
     if (!$user || !$user['amministratore']) {
         http_response_code(403);
@@ -45,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $colore = mysqli_real_escape_string($conn, $_POST['colore']);
                 $descrizione = mysqli_real_escape_string($conn, $_POST['descrizione']);
                 
-                if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === 0) {
+                if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === UPLOAD_ERR_OK) { // Use UPLOAD_ERR_OK
                     $allowed = ['jpg', 'jpeg', 'png', 'gif'];
                     $filename = $_FILES['immagine']['name'];
                     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
@@ -59,10 +74,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $query = "INSERT INTO prodotti (tipologia, prezzo, quantita, colore, descrizione, immagine) 
                                     VALUES (?, ?, ?, ?, ?, ?)";
                             $stmt = mysqli_prepare($conn, $query);
+
+                            if (!$stmt) {
+                                http_response_code(500);
+                                error_log("admin_actions.php - add_product - mysqli_prepare failed: " . mysqli_error($conn));
+                                die(json_encode(['error' => 'Errore interno del server (DB Prepare Add Product)']));
+                            }
+
                             mysqli_stmt_bind_param($stmt, "sdisss", $tipologia, $prezzo, $quantita, $colore, $descrizione, $new_filename);
                             
                             if (mysqli_stmt_execute($stmt)) {
                                 $id = mysqli_insert_id($conn);
+                                mysqli_stmt_close($stmt);
                                 echo json_encode([
                                     'success' => true,
                                     'message' => 'Prodotto aggiunto con successo!',
@@ -78,6 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 ]);
                             } else {
                                 http_response_code(500);
+                                error_log("admin_actions.php - add_product - mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
+                                mysqli_stmt_close($stmt);
                                 echo json_encode(['error' => 'Errore nell\'aggiunta del prodotto']);
                             }
                         } else {
@@ -98,32 +123,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($_POST['id'])) {
                     $id = intval($_POST['id']);
                     
-                    // Prima eliminiamo l'immagine
-                    $query = "SELECT immagine FROM prodotti WHERE id = ?";
-                    $stmt = mysqli_prepare($conn, $query);
-                    mysqli_stmt_bind_param($stmt, "i", $id);
-                    mysqli_stmt_execute($stmt);
-                    $result = mysqli_stmt_get_result($stmt);
+                    $query_select = "SELECT immagine FROM prodotti WHERE id = ?";
+                    $stmt_select = mysqli_prepare($conn, $query_select);
+
+                    if (!$stmt_select) {
+                        http_response_code(500);
+                        error_log("admin_actions.php - delete_product - mysqli_prepare (select) failed: " . mysqli_error($conn));
+                        die(json_encode(['error' => 'Errore interno del server (DB Prepare Select Product)']));
+                    }
+                    mysqli_stmt_bind_param($stmt_select, "i", $id);
+                    if (!mysqli_stmt_execute($stmt_select)) {
+                        http_response_code(500);
+                        error_log("admin_actions.php - delete_product - mysqli_stmt_execute (select) failed: " . mysqli_stmt_error($stmt_select));
+                        mysqli_stmt_close($stmt_select);
+                        die(json_encode(['error' => 'Errore interno del server (DB Execute Select Product)']));
+                    }
+                    $result = mysqli_stmt_get_result($stmt_select);
                     
                     if ($product = mysqli_fetch_assoc($result)) {
                         $image_path = "assets/products/" . $product['immagine'];
-                        if (file_exists($image_path)) {
+                        if (!empty($product['immagine']) && file_exists($image_path)) {
                             unlink($image_path);
                         }
                     }
+                    mysqli_stmt_close($stmt_select);
                     
-                    // Poi eliminiamo il prodotto dal database
-                    $query = "DELETE FROM prodotti WHERE id = ?";
-                    $stmt = mysqli_prepare($conn, $query);
-                    mysqli_stmt_bind_param($stmt, "i", $id);
+                    $query_delete = "DELETE FROM prodotti WHERE id = ?";
+                    $stmt_delete = mysqli_prepare($conn, $query_delete);
+
+                    if (!$stmt_delete) {
+                        http_response_code(500);
+                        error_log("admin_actions.php - delete_product - mysqli_prepare (delete) failed: " . mysqli_error($conn));
+                        die(json_encode(['error' => 'Errore interno del server (DB Prepare Delete Product)']));
+                    }
+                    mysqli_stmt_bind_param($stmt_delete, "i", $id);
                     
-                    if (mysqli_stmt_execute($stmt)) {
+                    if (mysqli_stmt_execute($stmt_delete)) {
+                        mysqli_stmt_close($stmt_delete);
                         echo json_encode([
                             'success' => true,
                             'message' => 'Prodotto eliminato con successo!'
                         ]);
                     } else {
                         http_response_code(500);
+                        error_log("admin_actions.php - delete_product - mysqli_stmt_execute (delete) failed: " . mysqli_stmt_error($stmt_delete));
+                        mysqli_stmt_close($stmt_delete);
                         echo json_encode(['error' => 'Errore nell\'eliminazione del prodotto']);
                     }
                 } else {
@@ -175,10 +219,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $query = "INSERT INTO eventi (titolo, data, descrizione, luogo, immagine) VALUES (?, ?, ?, ?, ?)";
                 $stmt = mysqli_prepare($conn, $query);
+
+                if (!$stmt) {
+                    http_response_code(500);
+                    error_log("admin_actions.php - add_event - mysqli_prepare failed: " . mysqli_error($conn));
+                    die(json_encode(['error' => 'Errore interno del server (DB Prepare Add Event)']));
+                }
+                
                 mysqli_stmt_bind_param($stmt, "sssss", $titolo, $data, $descrizione, $luogo, $immagine);
                 
                 if (mysqli_stmt_execute($stmt)) {
                     $id = mysqli_insert_id($conn);
+                    mysqli_stmt_close($stmt);
                     echo json_encode([
                         'success' => true,
                         'message' => 'Evento aggiunto con successo!',
@@ -193,6 +245,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 } else {
                     http_response_code(500);
+                    error_log("admin_actions.php - add_event - mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
+                    mysqli_stmt_close($stmt);
                     echo json_encode(['error' => 'Errore nell\'aggiunta dell\'evento']);
                 }
                 break;
@@ -201,11 +255,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($_POST['id'])) {
                     $id = intval($_POST['id']);
                     
-                    // Prima eliminiamo l'immagine se esiste
                     $query_select_image = "SELECT immagine FROM eventi WHERE id = ?";
                     $stmt_select_image = mysqli_prepare($conn, $query_select_image);
+
+                    if (!$stmt_select_image) {
+                        http_response_code(500);
+                        error_log("admin_actions.php - delete_event - mysqli_prepare (select) failed: " . mysqli_error($conn));
+                        die(json_encode(['error' => 'Errore interno del server (DB Prepare Select Event)']));
+                    }
                     mysqli_stmt_bind_param($stmt_select_image, "i", $id);
-                    mysqli_stmt_execute($stmt_select_image);
+                    if (!mysqli_stmt_execute($stmt_select_image)) {
+                        http_response_code(500);
+                        error_log("admin_actions.php - delete_event - mysqli_stmt_execute (select) failed: " . mysqli_stmt_error($stmt_select_image));
+                        mysqli_stmt_close($stmt_select_image);
+                        die(json_encode(['error' => 'Errore interno del server (DB Execute Select Event)']));
+                    }
                     $result_image = mysqli_stmt_get_result($stmt_select_image);
                     if ($event_data = mysqli_fetch_assoc($result_image)) {
                         if (!empty($event_data['immagine'])) {
@@ -215,18 +279,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             }
                         }
                     }
+                    mysqli_stmt_close($stmt_select_image);
 
-                    $query = "DELETE FROM eventi WHERE id = ?";
-                    $stmt = mysqli_prepare($conn, $query);
-                    mysqli_stmt_bind_param($stmt, "i", $id);
+                    $query_delete = "DELETE FROM eventi WHERE id = ?";
+                    $stmt_delete = mysqli_prepare($conn, $query_delete);
+
+                    if (!$stmt_delete) {
+                        http_response_code(500);
+                        error_log("admin_actions.php - delete_event - mysqli_prepare (delete) failed: " . mysqli_error($conn));
+                        die(json_encode(['error' => 'Errore interno del server (DB Prepare Delete Event)']));
+                    }
+                    mysqli_stmt_bind_param($stmt_delete, "i", $id);
                     
-                    if (mysqli_stmt_execute($stmt)) {
+                    if (mysqli_stmt_execute($stmt_delete)) {
+                        mysqli_stmt_close($stmt_delete);
                         echo json_encode([
                             'success' => true,
                             'message' => 'Evento eliminato con successo!'
                         ]);
                     } else {
                         http_response_code(500);
+                        error_log("admin_actions.php - delete_event - mysqli_stmt_execute (delete) failed: " . mysqli_stmt_error($stmt_delete));
+                        mysqli_stmt_close($stmt_delete);
                         echo json_encode(['error' => 'Errore nell\'eliminazione dell\'evento']);
                     }
                 } else {

@@ -107,7 +107,7 @@ if ($conn) {
         <div class="events-grid">
             <?php foreach ($events as $event): ?>
             <div class="event-card">
-                <img src="<?php echo htmlspecialchars($event['image']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>" class="event-image">
+                <img src="<?php echo htmlspecialchars(isset($event['immagine']) && !empty($event['immagine']) ? 'assets/events/' . $event['immagine'] : $event['image']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>" class="event-image">
                 <div class="event-content">
                     <div class="event-info">
                         <div class="event-date"><?php echo date('d/m/Y', strtotime($event['date'])); ?></div>

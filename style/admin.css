@@ -150,6 +150,21 @@ body.admin-page {
     display: block;
 }
 
+/* Styles for centering tables within admin sections */
+.table-section {
+    margin-left: auto;
+    margin-right: auto;
+    /* You can set a max-width if you don't want the table to be overly wide on large screens */
+    /* max-width: 95%; */ /* Example: limits table width to 95% of its container */
+}
+
+.admin-table {
+    width: 100%; /* Make table take full width of its container (.table-section) */
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    /* Removed margin: 0 auto; from here as it's better to center the parent .table-section */
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;

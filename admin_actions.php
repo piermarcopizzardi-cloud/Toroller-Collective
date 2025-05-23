@@ -137,55 +137,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = $_POST['data'] ?? '';
                 $descrizione = $_POST['descrizione'] ?? '';
                 $luogo = $_POST['luogo'] ?? '';
-                
+                $immagine = null;
+
                 if (empty($titolo) || empty($data) || empty($descrizione) || empty($luogo)) {
                     http_response_code(400);
-                    echo json_encode(['error' => 'Tutti i campi sono obbligatori']);
+                    echo json_encode(['error' => 'Tutti i campi testuali sono obbligatori']);
+                    exit;
+                }
+
+                if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === UPLOAD_ERR_OK) {
+                    $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+                    $file_extension = strtolower(pathinfo($_FILES['immagine']['name'], PATHINFO_EXTENSION));
+
+                    if (in_array($file_extension, $allowed_extensions)) {
+                        $upload_dir = 'assets/events/';
+                        if (!is_dir($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
+                        $immagine = uniqid() . '.' . $file_extension;
+                        $upload_path = $upload_dir . $immagine;
+
+                        if (!move_uploaded_file($_FILES['immagine']['tmp_name'], $upload_path)) {
+                            http_response_code(500);
+                            echo json_encode(['error' => 'Errore nel caricamento dell\'immagine.']);
+                            exit;
+                        }
+                    } else {
+                        http_response_code(400);
+                        echo json_encode(['error' => 'Tipo di file non supportato. Sono ammessi solo JPG, JPEG, PNG, GIF.']);
+                        exit;
+                    }
+                } else if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] !== UPLOAD_ERR_NO_FILE) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Errore nel caricamento dell\'immagine: ' . $_FILES['immagine']['error']]);
                     exit;
                 }
                 
-                // Query di inserimento semplice
-                $query = "INSERT INTO eventi (titolo, data, descrizione, luogo) VALUES (?, ?, ?, ?)";
+                $query = "INSERT INTO eventi (titolo, data, descrizione, luogo, immagine) VALUES (?, ?, ?, ?, ?)";
                 $stmt = mysqli_prepare($conn, $query);
-                mysqli_stmt_bind_param($stmt, "ssss", $titolo, $data, $descrizione, $luogo);
+                mysqli_stmt_bind_param($stmt, "sssss", $titolo, $data, $descrizione, $luogo, $immagine);
                 
                 if (mysqli_stmt_execute($stmt)) {
                     $id = mysqli_insert_id($conn);
                     echo json_encode([
                         'success' => true,
-                        'message' => 'Evento aggiunto con successo',
+                        'message' => 'Evento aggiunto con successo!',
                         'event' => [
                             'id' => $id,
                             'titolo' => $titolo,
                             'data' => $data,
                             'descrizione' => $descrizione,
-                            'luogo' => $luogo
+                            'luogo' => $luogo,
+                            'immagine' => $immagine
                         ]
                     ]);
                 } else {
-                    error_log("Errore SQL: " . mysqli_error($conn));
                     http_response_code(500);
-                    echo json_encode(['error' => 'Errore nell\'aggiunta dell\'evento: ' . mysqli_error($conn)]);
+                    echo json_encode(['error' => 'Errore nell\'aggiunta dell\'evento']);
                 }
                 break;
 
             case 'delete_event':
-                if (isset($_POST['event_id'])) {
-                    $event_id = intval($_POST['event_id']);
+                if (isset($_POST['id'])) {
+                    $id = intval($_POST['id']);
                     
-                    // Elimina l'evento
+                    // Prima eliminiamo l'immagine se esiste
+                    $query_select_image = "SELECT immagine FROM eventi WHERE id = ?";
+                    $stmt_select_image = mysqli_prepare($conn, $query_select_image);
+                    mysqli_stmt_bind_param($stmt_select_image, "i", $id);
+                    mysqli_stmt_execute($stmt_select_image);
+                    $result_image = mysqli_stmt_get_result($stmt_select_image);
+                    if ($event_data = mysqli_fetch_assoc($result_image)) {
+                        if (!empty($event_data['immagine'])) {
+                            $image_path = "assets/events/" . $event_data['immagine'];
+                            if (file_exists($image_path)) {
+                                unlink($image_path);
+                            }
+                        }
+                    }
+
                     $query = "DELETE FROM eventi WHERE id = ?";
                     $stmt = mysqli_prepare($conn, $query);
-                    mysqli_stmt_bind_param($stmt, "i", $event_id);
+                    mysqli_stmt_bind_param($stmt, "i", $id);
                     
                     if (mysqli_stmt_execute($stmt)) {
                         echo json_encode([
                             'success' => true,
-                            'message' => 'Evento eliminato con successo'
+                            'message' => 'Evento eliminato con successo!'
                         ]);
                     } else {
                         http_response_code(500);
-                        echo json_encode(['error' => 'Errore nell\'eliminazione dell\'evento: ' . mysqli_error($conn)]);
+                        echo json_encode(['error' => 'Errore nell\'eliminazione dell\'evento']);
                     }
                 } else {
                     http_response_code(400);

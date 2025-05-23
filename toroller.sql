@@ -89,19 +89,20 @@ CREATE TABLE `eventi` (
   `titolo` varchar(20) NOT NULL,
   `descrizione` text NOT NULL,
   `luogo` text NOT NULL,
-  `data` date NOT NULL
+  `data` date NOT NULL,
+  `immagine` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dump dei dati per la tabella `eventi`
 --
 
-INSERT INTO `eventi` (`id`, `titolo`, `descrizione`, `luogo`, `data`) VALUES
-(1, 'Critical-mass', 'Manifestazione di ciclisti ', 'Ogni primo giovedi del mese, partenza: Piazza Castello', '2025-04-01'),
-(2, 'Bike-To-School', 'Accompagnamento a Scuola dei bambini tramite l\'utilizzo di mezzi sostenibili', 'Istituto Gobetti, Settimo-Torinese', '2025-04-06'),
-(3, 'Educazione stradale', 'Corsi di educazione stradale per ciclisti ', 'Parco Pertini, Settimo-Torinese ', '2025-04-27'),
-(4, 'Future Parade', 'Parata Toroller x Fridays For Future ', 'Torino', '2025-06-14'),
-(5, 'Roller Dancing', 'Serata danzante sui pattini', 'Settimo-Torinese ', '2025-06-28');
+INSERT INTO `eventi` (`id`, `titolo`, `descrizione`, `luogo`, `data`, `immagine`) VALUES
+(1, 'Critical-mass', 'Manifestazione di ciclisti ', 'Ogni primo giovedi del mese, partenza: Piazza Castello', '2025-04-01', NULL),
+(2, 'Bike-To-School', 'Accompagnamento a Scuola dei bambini tramite l\'utilizzo di mezzi sostenibili', 'Istituto Gobetti, Settimo-Torinese', '2025-04-06', NULL),
+(3, 'Educazione stradale', 'Corsi di educazione stradale per ciclisti ', 'Parco Pertini, Settimo-Torinese ', '2025-04-27', NULL),
+(4, 'Future Parade', 'Parata Toroller x Fridays For Future ', 'Torino', '2025-06-14', NULL),
+(5, 'Roller Dancing', 'Serata danzante sui pattini', 'Settimo-Torinese ', '2025-06-28', NULL);
 
 -- --------------------------------------------------------
 

@@ -63,7 +63,7 @@ if ($conn) {
             'date' => $event['data'],
             'location' => $event['luogo'],
             'description' => $event['descrizione'],
-            'image' => 'assets/community-image.jpg',
+            'image' => isset($event['immagine']) && !empty($event['immagine']) ? 'assets/events/' . $event['immagine'] : 'assets/community-image.jpg',
             'time' => '19:00 - 22:00',
             'participants' => 100,
             'organizer' => 'TorollerCollective',
@@ -89,7 +89,7 @@ if ($conn) {
             'date' => $event['data'],
             'location' => $event['luogo'],
             'description' => $event['descrizione'],
-            'image' => 'assets/community-image.jpg'
+            'image' => isset($event['immagine']) && !empty($event['immagine']) ? 'assets/events/' . $event['immagine'] : 'assets/community-image.jpg'
         ];
     }
     mysqli_close($conn);
@@ -186,7 +186,7 @@ if ($conn) {
 
                 <div class="event-description">
                     <h2>Descrizione dell'evento</h2>
-                    <p><?php echo nl2br(htmlspecialchars($selectedEvent['full_description'])); ?></p>
+                    <p><?php echo nl2br(htmlspecialchars($selectedEvent['description'])); ?></p>
                 </div>
 
                 <div class="event-registration">

@@ -182,10 +182,8 @@ if ($conn) { // Ensure connection is available before querying
                 echo "<p>Errore di connessione al database.</p>";
             }
             ?>
-        </div>
-    </div>
+        </div>    </div>
 
-    <?php include 'components/footer.php'; ?>
     <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
     <!-- Removed cart.js include -->
 </body>

@@ -108,11 +108,8 @@ if ($conn) {
                 <h3 class="feature-title">Qualità Garantita</h3> <!-- Updated text -->
                 <p class="feature-description">Utilizziamo solo i migliori materiali e tecniche per garantire la massima qualità dei nostri servizi.</p> <!-- Updated text -->
             </div>
-        </div>
-    </div>
+        </div>    </div>
     
-    <?php include 'components/footer.php'; ?>
-
     <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

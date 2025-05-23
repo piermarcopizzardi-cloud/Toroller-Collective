@@ -759,5 +759,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         */
 
     </script>
+    <script src="<?php echo $basePath; ?>/components/header.js"></script>
 </body>
 </html>

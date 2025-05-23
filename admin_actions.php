@@ -24,7 +24,7 @@ function checkAdmin($conn) {
 }
 
 // Inizializza la connessione
-$conn = connetti("toroller");
+$conn = connetti("toroller_semplificato");
 if (!$conn) {
     http_response_code(500);
     die(json_encode(['error' => 'Errore di connessione al database']));

@@ -1,9 +1,19 @@
 <?php
 session_start();
+
+// Controllo se l'utente è loggato
+if (!isset($_SESSION['username'])) {
+    // Se non è loggato, reindirizza alla pagina di login
+    header('Location: login.php');
+    exit(); // Termina lo script per assicurarsi che il reindirizzamento avvenga
+}
+
 include("conn.php");
 
-// Controlla se l'utente è loggato
-$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+// La variabile $isLoggedIn può essere basata direttamente su $_SESSION['username']
+// dato che il controllo di accesso principale all'inizio del file usa questa variabile.
+// Se lo script arriva qui, $_SESSION['username'] è necessariamente settato.
+$isLoggedIn = isset($_SESSION['username']); // Semplificato e allineato
 
 // Se l'utente ha cliccato su logout
 if (isset($_GET['logout'])) {
@@ -20,20 +30,27 @@ try {
     }
 } catch (Exception $e) {
     error_log("Errore database: " . $e->getMessage());
+    // Considerare di mostrare un messaggio all'utente o gestire l'errore in modo più visibile se $conn rimane null
 }
 
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
-$userName = ''; // Changed variable name for clarity
-if ($isLoggedIn && $conn) {
-    $email_session = mysqli_real_escape_string($conn, $_SESSION['email']);
-    // Fetch username based on email from session for display purposes if needed
-    $query = "SELECT username, nome FROM utente WHERE email = '$email_session'"; 
+$userName = '';
+// Dato che il controllo if (!isset($_SESSION['username'])) all'inizio del file avrebbe causato un exit()
+// se l'utente non fosse loggato, possiamo assumere che $_SESSION['username'] sia settato qui.
+if ($conn && isset($_SESSION['username'])) { // Aggiunto controllo esplicito per $_SESSION['username'] per chiarezza
+    $current_username = mysqli_real_escape_string($conn, $_SESSION['username']);
+    $query = "SELECT username, nome, email FROM utente WHERE username = '$current_username'";
+    
     $result = mysqli_query($conn, $query);
     if ($result && mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
-        $userEmail = $email_session; // Keep email for session context
-        $userName = $user['username']; // Display username
+        $userEmail = $user['email']; 
+        $userName = $user['username']; 
+    } else {
+        // Utente non trovato nel DB nonostante la sessione esista?
+        // Potrebbe essere un caso limite da loggare o gestire (es. distruggere la sessione e reindirizzare al login)
+        error_log("User session exists for username: " . $_SESSION['username'] . " but user not found in DB.");
     }
 }
 

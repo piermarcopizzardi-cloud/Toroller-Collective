@@ -81,8 +81,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $user = mysqli_fetch_assoc($ris);
                     if (password_verify($password_form, $user['password'])) {
                         // Login successful
-                        $_SESSION['email'] = $email_form;
-                        $_SESSION['password'] = $user['password']; // Store hashed password
+                        $_SESSION['email'] = $user['email']; // Mantieni l'email se serve altrove
+                        $_SESSION['username'] = $user['username']; // Imposta l'username nella sessione
+                        $_SESSION['password'] = $user['password']; // Store hashed password (consider removing if not strictly needed for session checks)
                         $_SESSION['is_admin'] = $user['amministratore'] == 1; // Salva se l'utente è admin
                         header("Location: index.php");
                         exit();

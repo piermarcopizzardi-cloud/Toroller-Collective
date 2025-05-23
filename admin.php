@@ -4,6 +4,7 @@ include("conn.php");
 
 // Controlla se l'utente è loggato
 $isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
+$user = null; // Initialize user variable
 
 // Se l'utente ha cliccato su logout
 if (isset($_GET['logout'])) {
@@ -28,6 +29,37 @@ try {
     if (!$conn) {
         throw new Exception("Errore di connessione al database");
     }
+
+    // Fetch user data if logged in
+    if ($isLoggedIn) {
+        $admin_email = $_SESSION['email'];
+        $query_user = "SELECT * FROM utente WHERE email = ?";
+        $stmt_user = mysqli_prepare($conn, $query_user);
+        mysqli_stmt_bind_param($stmt_user, "s", $admin_email);
+        mysqli_stmt_execute($stmt_user);
+        $result_user = mysqli_stmt_get_result($stmt_user);
+        if ($row_user = mysqli_fetch_assoc($result_user)) {
+            $user = $row_user;
+        } else {
+            // User not found, perhaps session is stale or user deleted
+            session_destroy();
+            header("Location: login.php?error=Sessione invalida o utente non trovato.");
+            exit();
+        }
+        mysqli_stmt_close($stmt_user);
+    } else {
+        // If not logged in, and trying to access admin page, redirect to login
+        // This check might be more robust depending on page structure
+        if (basename($_SERVER['PHP_SELF']) == 'admin.php') { // Ensure this is admin.php
+             // Allow access if it's a POST request for login (if login form is on admin.php)
+            if (!($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email']) && isset($_POST['password']))) {
+                // header("Location: login.php?error=Accesso negato."); // Or your main login page
+                // exit();
+                // For now, let's assume login check is sufficient and $user will be null if not logged in
+            }
+        }
+    }
+
 } catch (Exception $e) {
     error_log("Errore database: " . $e->getMessage());
     $error = "Errore di connessione al database.";
@@ -240,47 +272,168 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_event']) && iss
     mysqli_stmt_close($stmt);
 }
 
+// Gestione Eliminazione Utente
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user']) && isset($_POST['user_email']) && $conn) {
+    $user_email_to_delete = mysqli_real_escape_string($conn, $_POST['user_email']);
+
+    // Assicurati che l'admin non stia cercando di eliminare se stesso tramite questo form
+    if ($user_email_to_delete === $_SESSION['email']) {
+        $error = "Non puoi eliminare il tuo account da questa interfaccia.";
+    } else {
+        // Inizia una transazione
+        mysqli_begin_transaction($conn);
+
+        try {
+            // Get all topic IDs created by the user
+            $query_get_topic_ids = "SELECT id FROM forum_topics WHERE user_email = ?";
+            $stmt_get_topic_ids = mysqli_prepare($conn, $query_get_topic_ids);
+            mysqli_stmt_bind_param($stmt_get_topic_ids, "s", $user_email_to_delete);
+            mysqli_stmt_execute($stmt_get_topic_ids);
+            $result_topic_ids = mysqli_stmt_get_result($stmt_get_topic_ids);
+            $topic_ids_for_user = [];
+            while ($row = mysqli_fetch_assoc($result_topic_ids)) {
+                $topic_ids_for_user[] = $row['id'];
+            }
+            mysqli_stmt_close($stmt_get_topic_ids);
+
+            // If the user has created topics, delete all replies to those topics first
+            if (!empty($topic_ids_for_user)) {
+                $placeholders = implode(',', array_fill(0, count($topic_ids_for_user), '?'));
+                // Determine types for bind_param. Assuming topic IDs are integers.
+                $types = str_repeat('i', count($topic_ids_for_user)); 
+
+                $query_delete_replies_to_user_topics = "DELETE FROM forum_replies WHERE topic_id IN ($placeholders)";
+                $stmt_delete_replies_to_user_topics = mysqli_prepare($conn, $query_delete_replies_to_user_topics);
+                // Bind parameters dynamically
+                mysqli_stmt_bind_param($stmt_delete_replies_to_user_topics, $types, ...$topic_ids_for_user);
+                mysqli_stmt_execute($stmt_delete_replies_to_user_topics);
+                mysqli_stmt_close($stmt_delete_replies_to_user_topics);
+            }
+
+            // Then, delete any remaining replies made directly by the user (e.g., to other users' topics)
+            // This might be redundant if the user only replied to their own topics (covered above), 
+            // but ensures all replies by this user are gone if they replied to topics by others.
+            $query_delete_user_own_replies = "DELETE FROM forum_replies WHERE user_email = ?";
+            $stmt_delete_user_own_replies = mysqli_prepare($conn, $query_delete_user_own_replies);
+            mysqli_stmt_bind_param($stmt_delete_user_own_replies, "s", $user_email_to_delete);
+            mysqli_stmt_execute($stmt_delete_user_own_replies);
+            mysqli_stmt_close($stmt_delete_user_own_replies);
+
+            // Now, delete the topics created by the user
+            $query_delete_user_topics = "DELETE FROM forum_topics WHERE user_email = ?";
+            $stmt_delete_user_topics = mysqli_prepare($conn, $query_delete_user_topics);
+            mysqli_stmt_bind_param($stmt_delete_user_topics, "s", $user_email_to_delete);
+            mysqli_stmt_execute($stmt_delete_user_topics);
+            mysqli_stmt_close($stmt_delete_user_topics);
+
+            // Delete records from ordini
+            $query_delete_orders = "DELETE FROM ordini WHERE email_utente = ?";
+            $stmt_delete_orders = mysqli_prepare($conn, $query_delete_orders);
+            mysqli_stmt_bind_param($stmt_delete_orders, "s", $user_email_to_delete);
+            mysqli_stmt_execute($stmt_delete_orders);
+            mysqli_stmt_close($stmt_delete_orders);
+
+            // 4. Elimina l'utente da utente
+            $query_delete_user = "DELETE FROM utente WHERE email = ?";
+            $stmt_delete_user = mysqli_prepare($conn, $query_delete_user);
+            mysqli_stmt_bind_param($stmt_delete_user, "s", $user_email_to_delete);
+            
+            if (mysqli_stmt_execute($stmt_delete_user)) {
+                if (mysqli_stmt_affected_rows($stmt_delete_user) > 0) {
+                    mysqli_commit($conn); // Conferma la transazione
+                    $success = "Utente e record correlati eliminati con successo!";
+                } else {
+                    mysqli_rollback($conn); // Annulla la transazione
+                    $error = "Utente non trovato o già eliminato.";
+                }
+            } else {
+                mysqli_rollback($conn); // Annulla la transazione
+                $error = "Errore durante l'eliminazione dell'utente: " . mysqli_error($conn);
+            }
+            mysqli_stmt_close($stmt_delete_user);
+        } catch (mysqli_sql_exception $e) {
+            mysqli_rollback($conn); // Annulla la transazione in caso di errore
+            $error = "Errore durante l'eliminazione dei record correlati: " . $e->getMessage();
+        }
+    }
+}
+
 
 // Gestione del profilo e cambio password
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['update_profile'])) {
-        $nome = mysqli_real_escape_string($conn, $_POST['nome']);
-        $cognome = mysqli_real_escape_string($conn, $_POST['cognome']);
-        $dataNascita = mysqli_real_escape_string($conn, $_POST['data_nascita']);
-        
-        $updateQuery = "UPDATE utente SET nome = '$nome', cognome = '$cognome', data_nascita = '$dataNascita' WHERE email = '$email'";
-        if (mysqli_query($conn, $updateQuery)) {
-            $success = "Profilo aggiornato con successo!";
-            // Refresh user data
-            $result = mysqli_query($conn, $query);
-            $user = mysqli_fetch_assoc($result);
+        // Ensure $user is available and $conn is valid
+        if ($user && $conn) {
+            $nome = mysqli_real_escape_string($conn, $_POST['nome']);
+            $cognome = mysqli_real_escape_string($conn, $_POST['cognome']);
+            $dataNascita = mysqli_real_escape_string($conn, $_POST['data_nascita']);
+            $admin_email_for_update = $user['email']; // Use email from fetched $user array
+            
+            $updateQuery = "UPDATE utente SET nome = ?, cognome = ?, data_nascita = ? WHERE email = ?";
+            $stmt_update_profile = mysqli_prepare($conn, $updateQuery);
+            mysqli_stmt_bind_param($stmt_update_profile, "ssss", $nome, $cognome, $dataNascita, $admin_email_for_update);
+
+            if (mysqli_stmt_execute($stmt_update_profile)) {
+                $success = "Profilo aggiornato con successo!";
+                // Refresh user data by re-fetching
+                $stmt_fetch_updated_user = mysqli_prepare($conn, "SELECT * FROM utente WHERE email = ?");
+                mysqli_stmt_bind_param($stmt_fetch_updated_user, "s", $admin_email_for_update);
+                mysqli_stmt_execute($stmt_fetch_updated_user);
+                $result_updated_user = mysqli_stmt_get_result($stmt_fetch_updated_user);
+                $user = mysqli_fetch_assoc($result_updated_user); // Update $user variable
+                mysqli_stmt_close($stmt_fetch_updated_user);
+            } else {
+                $error = "Errore durante l'aggiornamento del profilo: " . mysqli_error($conn);
+            }
+            mysqli_stmt_close($stmt_update_profile);
         } else {
-            $error = "Errore durante l'aggiornamento del profilo.";
+            $error = "Impossibile aggiornare il profilo. Utente non loggato o errore di connessione.";
         }
     }
     
     // Handle password change
     if (isset($_POST['change_password'])) {
-        $currentPassword = mysqli_real_escape_string($conn, $_POST['current_password']);
-        $newPassword = mysqli_real_escape_string($conn, $_POST['new_password']);
-        $confirmPassword = mysqli_real_escape_string($conn, $_POST['confirm_password']);
-        
-        if (password_verify($currentPassword, $user['password'])) {
-            if ($newPassword === $confirmPassword) {
-                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                $updateQuery = "UPDATE utente SET password = '$hashedPassword' WHERE email = '$email'";
-                
-                if (mysqli_query($conn, $updateQuery)) {
-                    $success = "Password aggiornata con successo!";
-                    $_SESSION['password'] = $hashedPassword;
+        // Ensure $user is available and $conn is valid
+        if ($user && $conn) {
+            $currentPassword = mysqli_real_escape_string($conn, $_POST['current_password']);
+            $newPassword = mysqli_real_escape_string($conn, $_POST['new_password']);
+            $confirmPassword = mysqli_real_escape_string($conn, $_POST['confirm_password']);
+            $admin_email_for_password_change = $user['email']; // Use email from fetched $user array
+
+            // $user['password'] should now be correctly populated from the database query above
+            if (password_verify($currentPassword, $user['password'])) {
+                if ($newPassword === $confirmPassword) {
+                    if (strlen($newPassword) < 8) { // Example: Basic password strength check
+                        $error = "La nuova password deve contenere almeno 8 caratteri.";
+                    } else {
+                        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+                        $updateQueryPass = "UPDATE utente SET password = ? WHERE email = ?";
+                        $stmt_update_pass = mysqli_prepare($conn, $updateQueryPass);
+                        mysqli_stmt_bind_param($stmt_update_pass, "ss", $hashedPassword, $admin_email_for_password_change);
+                        
+                        if (mysqli_stmt_execute($stmt_update_pass)) {
+                            $success = "Password aggiornata con successo!";
+                            $_SESSION['password'] = $hashedPassword; // Update session password hash if needed
+                            // Re-fetch user data to update $user['password'] in the current script execution
+                            $stmt_refetch_user_pass = mysqli_prepare($conn, "SELECT * FROM utente WHERE email = ?");
+                            mysqli_stmt_bind_param($stmt_refetch_user_pass, "s", $admin_email_for_password_change);
+                            mysqli_stmt_execute($stmt_refetch_user_pass);
+                            $result_refetch_user_pass = mysqli_stmt_get_result($stmt_refetch_user_pass);
+                            $user = mysqli_fetch_assoc($result_refetch_user_pass); // Update $user variable
+                            mysqli_stmt_close($stmt_refetch_user_pass);
+                        } else {
+                            $error = "Errore durante l'aggiornamento della password: " . mysqli_error($conn);
+                        }
+                        mysqli_stmt_close($stmt_update_pass);
+                    }
                 } else {
-                    $error = "Errore durante l'aggiornamento della password.";
+                    $error = "Le nuove password non corrispondono.";
                 }
             } else {
-                $error = "Le nuove password non corrispondono.";
+                $error = "Password attuale non corretta.";
             }
         } else {
-            $error = "Password attuale non corretta.";
+             $error = "Impossibile cambiare la password. Utente non loggato o errore di connessione.";
         }
     }
 }

@@ -67,9 +67,9 @@ if ($conn) {
                 'date' => $event['data'],
                 'location' => $event['luogo'],
                 'description' => $event['descrizione'],
-                'image' => 'assets/community-image.jpg',
-                'time' => '19:00 - 22:00',
-                'participants' => 100
+                'immagine' => $event['immagine'], // Use the actual image filename from DB
+                'time' => '19:00 - 22:00', // You might want to make this dynamic later
+                'participants' => 100 // You might want to make this dynamic later
             ];
         }
     } else {
@@ -107,7 +107,7 @@ if ($conn) {
         <div class="events-grid">
             <?php foreach ($events as $event): ?>
             <div class="event-card">
-                <img src="<?php echo htmlspecialchars(isset($event['immagine']) && !empty($event['immagine']) ? 'assets/events/' . $event['immagine'] : $event['image']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>" class="event-image">
+                <img src="<?php echo htmlspecialchars(isset($event['immagine']) && !empty($event['immagine']) ? $basePath . '/assets/events/' . $event['immagine'] : $basePath . '/assets/product-placeholder.jpg'); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>" class="event-image">
                 <div class="event-content">
                     <div class="event-info">
                         <div class="event-date"><?php echo date('d/m/Y', strtotime($event['date'])); ?></div>

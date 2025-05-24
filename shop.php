@@ -88,17 +88,15 @@ if ($conn) { // Ensure connection is available before querying
 <body>
     <?php include 'components/header.php'?>
 
-    <!-- Removed old mobile menu and cart popup HTML -->
-
-    <div class="main-content">
+    <!-- Removed old mobile menu and cart popup HTML -->    <div class="main-content">
         <div class="shop-header">
             <h1 class="shop-title">I Nostri Servizi</h1>
             <p class="shop-subtitle">Esplora la gamma di servizi che offriamo.</p>
         </div>
 
-        <!-- Search and Filter Section -->
+        <!-- Primo passo: Ricerca -->
         <div class="search-filter-section">
-            <form method="GET" action="shop.php">
+            <form method="GET" action="shop.php" id="searchForm">
                 <input type="text" name="search_term" placeholder="Cerca servizio per nome..." value="<?php echo isset($_GET['search_term']) ? htmlspecialchars($_GET['search_term']) : ''; ?>">
                 <select name="category">
                     <option value="">Tutte le categorie</option>
@@ -158,14 +156,13 @@ if ($conn) { // Ensure connection is available before querying
 
                     if ($resultServiziDisplay && mysqli_num_rows($resultServiziDisplay) > 0) {
                         while ($servizio = mysqli_fetch_assoc($resultServiziDisplay)):
-                    ?>
-                        <div class="product-card">
-                            <!-- <img src="<?php echo $basePath; ?>/assets/product-placeholder.jpg" alt="<?php echo htmlspecialchars($servizio['nome']); ?>" class="product-image"> Using a placeholder, as images were removed -->
+                    ?>                        <div class="product-card">
                             <div class="product-info">
                                 <h3 class="product-name"><?php echo htmlspecialchars($servizio['nome']); ?></h3>
                                 <p class="product-category">Categoria: <?php echo htmlspecialchars($servizio['categoria']); ?></p>
-                                <p class="product-description"><?php echo nl2br(htmlspecialchars($servizio['descrizione'])); ?></p>
-                                <!-- Removed price and add to cart button -->
+                                <a href="servizio_dettaglio.php?id=<?php echo $servizio['id']; ?>" class="view-details-btn">
+                                    Vedi Dettagli
+                                </a>
                             </div>
                         </div>
                     <?php 
@@ -181,10 +178,19 @@ if ($conn) { // Ensure connection is available before querying
             } else {
                 echo "<p>Errore di connessione al database.</p>";
             }
-            ?>
-        </div>    </div>
+            ?>        </div>
+    </div>
 
     <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
-    <!-- Removed cart.js include -->
+    <script>
+        // Mostra/nascondi il pulsante "Mostra Dettagli" in base alle selezioni
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const showDetailsBtn = document.getElementById('showDetailsBtn');
+                const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+                showDetailsBtn.style.display = checkedBoxes.length > 0 ? 'block' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>

@@ -116,13 +116,14 @@ body {
     border-radius: var(--card-border-radius);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     padding: 25px;
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    transition: transform 0.2s ease-in-out;
     display: flex;
     flex-direction: column;
+    cursor: pointer;
 }
 
 .product-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-2px);
     box-shadow: var(--hover-shadow);
 }
 
@@ -149,10 +150,36 @@ body {
 }
 
 .product-description {
-    font-size: 1em;
-    line-height: 1.6;
+    margin-top: 10px;
+    line-height: 1.5;
     color: var(--text-color);
-    margin-bottom: 0; /* Remove bottom margin if it's the last element */
+}
+
+.view-details-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.view-details-btn:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.product-details {
+    margin-top: 15px;
+    padding: 10px;
+    border-top: 1px solid var(--border-color);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* No results message */
@@ -162,6 +189,83 @@ body {
     font-size: 1.2em;
     color: var(--light-text-color);
     padding: 40px;
+}
+
+/* Two-step search styles */
+.select-service {
+    display: block;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.select-service input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+#showDetailsBtn {
+    display: none;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#showDetailsBtn:hover {
+    background-color: #0056b3;
+}
+
+.selected-services-details {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.service-detail-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.back-button {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.back-button:hover {
+    color: var(--primary-color);
+}
+
+.service-detail-card {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.service-detail-card h1 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 2em;
+}
+
+.service-detail-card .category {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+}
+
+.service-detail-card .description {
+    line-height: 1.6;
+    color: #444;
+    font-size: 1.1em;
 }
 
 /* Responsive adjustments */

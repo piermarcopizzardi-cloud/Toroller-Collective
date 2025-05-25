@@ -282,15 +282,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <form method="POST" action="">
                     <div class="form-group">
                         <label class="form-label">Nome</label>
-                        <input type="text" name="nome" class="form-input" value="<?php echo htmlspecialchars($user['nome']); ?>" required>
+                        <input type="text" name="nome" class="form-input" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Cognome</label>
-                        <input type="text" name="cognome" class="form-input" value="<?php echo htmlspecialchars($user['cognome']); ?>" required>
-                    </div>                    <div class="form-group">
+                        <input type="text" name="cognome" class="form-input" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>" required>
+                    </div>                    
+                    <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" class="form-input" value="<?php echo htmlspecialchars($user['email']); ?>" disabled>
+                        <input type="email" class="form-input" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" disabled>
                     </div>
 
                     <button type="submit" name="update_profile" class="submit-btn">Aggiorna Profilo</button>

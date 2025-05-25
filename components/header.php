@@ -44,11 +44,10 @@ if ($isLoggedIn && isset($_SESSION['email'])) {
         </div>
         
         <?php if ($isLoggedIn): ?>
-            <div class="user-menu">
-                <?php if ($isAdmin): // Usa la variabile $isAdmin correttamente inizializzata ?>
+            <div class="user-menu">                <?php if ($isAdmin): // Usa la variabile $isAdmin correttamente inizializzata ?>
                     <a href="<?php echo $basePath; ?>/admin.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
                 <?php else: ?>
-                    <a href="<?php echo $basePath; ?>/utente_cambio_pws.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
+                    <a href="<?php echo $basePath; ?>/profile.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
                 <?php endif; ?>
                 <a href="<?php echo $basePath; ?>/?logout=1" class="logout-btn">Logout</a>
             </div>

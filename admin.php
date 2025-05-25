@@ -247,9 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Il Mio Profilo - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
-    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/cart.css">
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/admin.css">
 </head>
 <body class="admin-page">
@@ -266,12 +264,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         <?php if (!empty($success)): ?>
             <div class="success-message"><?php echo $success; ?></div>
-        <?php endif; ?>
-
-        <!-- Tab Navigation -->
-        <div class="admin-tabs">
+        <?php endif; ?>        <!-- Tab Navigation -->            <div class="admin-tabs">
             <div class="admin-tab active" data-tab="profile">Profilo</div>
-            <div class="admin-tab" data-tab="products">Gestione Servizi</div>
+            <div class="admin-tab" data-tab="services">Gestione Servizi</div>
             <div class="admin-tab" data-tab="users">Gestione Utenti</div>
         </div>
 
@@ -319,10 +314,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <button type="submit" name="change_password" class="submit-btn">Cambia Password</button>
                 </form>
             </div>
-        </div>
-        <!-- Products Section -->
-        <div class="admin-section" id="productsSection"> <!-- ID remains productsSection for JS compatibility, or update JS -->
-            <h2>Gestione Servizi</h2> 
+        </div>        <!-- Services Section -->
+        <div class="admin-section" id="servicesSection">
+            <h2>Gestione Servizi</h2>
             
             <!-- Add Service Form -->
             <div class="form-section">
@@ -400,8 +394,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ?>
                     </tbody>
                 </table>
-            </div>
-        </div>
+            </div>        </div>
 
         <!-- Users Section -->
         <div class="admin-section" id="usersSection">
@@ -410,7 +403,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <h3>Elenco Utenti</h3>
                 <table class="admin-table">
                     <thead>
-                        <tr>                            <th>Nome</th>
+                        <tr>
+                            <th>Nome</th>
                             <th>Cognome</th>
                             <th>Email</th>
                             <th>Amministratore</th>
@@ -419,13 +413,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </thead>
                     <tbody>
                         <?php
-                        // $conn_users = connetti("toroller"); // This was the old way
-                        if ($conn) { // Use the main $conn object
+                        if ($conn) {
                             $users_query = "SELECT * FROM utente ORDER BY nome ASC";
                             $users_result = mysqli_query($conn, $users_query);
                             if ($users_result && mysqli_num_rows($users_result) > 0) {
                                 while ($row = mysqli_fetch_assoc($users_result)) {
-                                    echo "<tr>";                                    echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
+                                    echo "<tr>";
+                                    echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['cognome']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['email']) . "</td>";
                                     echo "<td>" . ($row['amministratore'] ? 'Sì' : 'No') . "</td>";
@@ -433,18 +427,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     if ($row['email'] !== $_SESSION['email']) { 
                                         echo "<form method='POST' action='' style='display:inline-block;'>";
                                         echo "<input type='hidden' name='user_email' value='" . htmlspecialchars($row['email']) . "'>";
-                                        echo "<button type='submit' name='delete_user' class='delete-btn' onclick='return confirm(\"Sei sicuro di voler eliminare questo utente? L\\'azione è irreversibile e cancellerà anche i suoi ordini e attività sul forum.\")'>Elimina</button>";
+                                        echo "<button type='submit' name='delete_user' class='delete-btn' onclick='return confirm(\"Sei sicuro di voler eliminare questo utente?\")'>Elimina</button>";
                                         echo "</form>";
                                     }
                                     echo "</td>";
                                     echo "</tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='6'>Nessun utente trovato.</td></tr>";
+                                echo "<tr><td colspan='5'>Nessun utente trovato.</td></tr>";
                             }
-                            // mysqli_close($conn_users); // Don't close the main $conn here
                         } else {
-                             echo "<tr><td colspan='6'>Errore di connessione al database per caricare gli utenti.</td></tr>";
+                            echo "<tr><td colspan='5'>Errore di connessione al database.</td></tr>";
                         }
                         ?>
                     </tbody>

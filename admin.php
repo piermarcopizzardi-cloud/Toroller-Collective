@@ -454,7 +454,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function clearMessages() {
             if (messagesGlobal) messagesGlobal.innerHTML = '';
             // Clear messages in other specific areas if needed
-            if (document.getElementById('statusMessage')) document.getElementById('statusMessage').innerHTML = '';
+            // Example: document.getElementById('messagesProduct').innerHTML = '';
         }
 
         function showSection(targetSectionId) {

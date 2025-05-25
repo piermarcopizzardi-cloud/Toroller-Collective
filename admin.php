@@ -104,15 +104,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user']) && isse
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['update_profile'])) {
         // Ensure $user is available and $conn is valid
-        if ($user && $conn) {
-            $nome = mysqli_real_escape_string($conn, $_POST['nome']);
+        if ($user && $conn) {            $nome = mysqli_real_escape_string($conn, $_POST['nome']);
             $cognome = mysqli_real_escape_string($conn, $_POST['cognome']);
-            $dataNascita = mysqli_real_escape_string($conn, $_POST['data_nascita']);
             $admin_email_for_update = $user['email']; // Use email from fetched $user array
             
-            $updateQuery = "UPDATE utente SET nome = ?, cognome = ?, data_nascita = ? WHERE email = ?";
+            $updateQuery = "UPDATE utente SET nome = ?, cognome = ? WHERE email = ?";
             $stmt_update_profile = mysqli_prepare($conn, $updateQuery);
-            mysqli_stmt_bind_param($stmt_update_profile, "ssss", $nome, $cognome, $dataNascita, $admin_email_for_update);
+            mysqli_stmt_bind_param($stmt_update_profile, "sss", $nome, $cognome, $admin_email_for_update);
 
             if (mysqli_stmt_execute($stmt_update_profile)) {
                 $success = "Profilo aggiornato con successo!";
@@ -180,25 +178,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Handle Add Service
     if (isset($_POST['add_service'])) {
-        if ($conn) {
-            $nome_servizio = mysqli_real_escape_string($conn, $_POST['nome_servizio']);
+        if ($conn) {            $nome_servizio = mysqli_real_escape_string($conn, $_POST['nome_servizio']);
             $descrizione_servizio = mysqli_real_escape_string($conn, $_POST['descrizione_servizio']);
-            // Keep original string from POST for is_numeric check
-            $prezzo_servizio_str = $_POST['prezzo_servizio']; 
+            $categoria = mysqli_real_escape_string($conn, $_POST['categoria']);
 
-            if (empty($nome_servizio) || empty($descrizione_servizio) || !is_numeric($prezzo_servizio_str)) {
-                $error = "Tutti i campi sono obbligatori e il prezzo deve essere un numero.";
+            if (empty($nome_servizio) || empty($descrizione_servizio) || empty($categoria)) {
+                $error = "Tutti i campi sono obbligatori.";
             } else {
-                // Convert to float for binding, after validation
-                $prezzo_servizio_float = floatval($prezzo_servizio_str);
-
-                $query_add_service = "INSERT INTO servizi (nome, descrizione, prezzo) VALUES (?, ?, ?)";
+                $query_add_service = "INSERT INTO servizi (nome, descrizione, categoria) VALUES (?, ?, ?)";
                 $stmt_add_service = mysqli_prepare($conn, $query_add_service);
 
                 if (!$stmt_add_service) {
                     $error = "Errore nella preparazione della query (add service): " . mysqli_error($conn);
                 } else {
-                    mysqli_stmt_bind_param($stmt_add_service, "ssd", $nome_servizio, $descrizione_servizio, $prezzo_servizio_float);
+                    mysqli_stmt_bind_param($stmt_add_service, "sss", $nome_servizio, $descrizione_servizio, $categoria);
                     if (mysqli_stmt_execute($stmt_add_service)) {
                         $success = "Servizio aggiunto con successo!";
                     } else {
@@ -295,16 +288,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="form-group">
                         <label class="form-label">Cognome</label>
                         <input type="text" name="cognome" class="form-input" value="<?php echo htmlspecialchars($user['cognome']); ?>" required>
-                    </div>
-
-                    <div class="form-group">
+                    </div>                    <div class="form-group">
                         <label class="form-label">Email</label>
                         <input type="email" class="form-input" value="<?php echo htmlspecialchars($user['email']); ?>" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Data di Nascita</label>
-                        <input type="date" name="data_nascita" class="form-input" value="<?php echo htmlspecialchars($user['data_nascita']); ?>" required>
                     </div>
 
                     <button type="submit" name="update_profile" class="submit-btn">Aggiorna Profilo</button>
@@ -348,8 +334,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="invalid-feedback">
                             Il nome del servizio è obbligatorio.
                         </div>
-                    </div>
-                    <div class="form-group">
+                    </div>                    <div class="form-group">
                         <label class="form-label" for="descrizione_servizio">Descrizione</label>
                         <textarea id="descrizione_servizio" name="descrizione_servizio" class="form-input" rows="3" required></textarea>
                         <div class="invalid-feedback">
@@ -357,10 +342,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="prezzo_servizio">Prezzo</label>
-                        <input type="number" id="prezzo_servizio" step="0.01" name="prezzo_servizio" class="form-input" required>
+                        <label class="form-label" for="categoria">Categoria</label>
+                        <input type="text" id="categoria" name="categoria" class="form-input" required>
                         <div class="invalid-feedback">
-                            Il prezzo è obbligatorio e deve essere un numero.
+                            La categoria è obbligatoria.
                         </div>
                     </div>
                     <button type="submit" name="add_service" class="submit-btn">Aggiungi Servizio</button>
@@ -370,12 +355,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <!-- Services Table -->
             <div class="table-section">
                 <h3>Elenco Servizi</h3>
-                <table id="servicesTable" class="admin-table"> <!-- Changed ID to servicesTable -->
-                    <thead>
+                <table id="servicesTable" class="admin-table"> <!-- Changed ID to servicesTable -->                    <thead>
                         <tr>
                             <th>Nome</th>
+                            <th>Categoria</th>
                             <th>Descrizione</th>
-                            <th>Prezzo</th>
                             <th>Azioni</th>
                         </tr>
                     </thead>
@@ -388,8 +372,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 while ($service = mysqli_fetch_assoc($services_result)) {
                                     echo "<tr>";
                                     echo "<td>" . htmlspecialchars($service['nome']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($service['categoria']) . "</td>";
                                     echo "<td>" . htmlspecialchars($service['descrizione']) . "</td>";
-                                    echo "<td>€ " . htmlspecialchars(number_format($service['prezzo'], 2, ',', '.')) . "</td>";
                                     echo "<td>";
                                     // Delete Service Form
                                     echo "<form method='POST' action='' style='display:inline-block;'>";
@@ -425,11 +409,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <h3>Elenco Utenti</h3>
                 <table class="admin-table">
                     <thead>
-                        <tr>
-                            <th>Nome</th>
+                        <tr>                            <th>Nome</th>
                             <th>Cognome</th>
                             <th>Email</th>
-                            <th>Data di Nascita</th>
                             <th>Amministratore</th>
                             <th>Azioni</th>
                         </tr>
@@ -442,11 +424,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $users_result = mysqli_query($conn, $users_query);
                             if ($users_result && mysqli_num_rows($users_result) > 0) {
                                 while ($row = mysqli_fetch_assoc($users_result)) {
-                                    echo "<tr>";
-                                    echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
+                                    echo "<tr>";                                    echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['cognome']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['data_nascita']) . "</td>";
                                     echo "<td>" . ($row['amministratore'] ? 'Sì' : 'No') . "</td>";
                                     echo "<td>";
                                     if ($row['email'] !== $_SESSION['email']) { 

@@ -29,28 +29,32 @@ try {
 
     // Fetch user data if logged in
     if ($isLoggedIn) {
-        $admin_email = $_SESSION['email'];
-        $query_user = "SELECT * FROM utente WHERE email = ?";
-        $stmt_user = mysqli_prepare($conn, $query_user);
-        mysqli_stmt_bind_param($stmt_user, "s", $admin_email);
-        mysqli_stmt_execute($stmt_user);
-        $result_user = mysqli_stmt_get_result($stmt_user);
-        if ($row_user = mysqli_fetch_assoc($result_user)) {
-            $user = $row_user;
-            // Verifica se l'utente è effettivamente un amministratore
-            if (!isset($user['amministratore']) || $user['amministratore'] != 1) {
-                // Non è un admin, reindirizza o mostra errore
-                session_destroy(); // Opzionale: utile per forzare un nuovo login
-                header("Location: login.php?error=Accesso negato. Permessi insufficienti.");
-                exit();
+        $admin_email_unsafe = $_SESSION['email'];
+        // Sanitize the email input before using it in the query
+        $admin_email_safe = mysqli_real_escape_string($conn, $admin_email_unsafe);
+
+        $query_user = "SELECT * FROM utente WHERE email = '$admin_email_safe'";
+        $result_user = mysqli_query($conn, $query_user);
+
+        if ($result_user && mysqli_num_rows($result_user) > 0) {
+            if ($row_user = mysqli_fetch_assoc($result_user)) {
+                $user = $row_user;
+                // Verifica se l'utente è effettivamente un amministratore
+                if (!isset($user['amministratore']) || $user['amministratore'] != 1) {
+                    // Non è un admin, reindirizza o mostra errore
+                    session_destroy(); // Opzionale: utile per forzare un nuovo login
+                    header("Location: login.php?error=Accesso negato. Permessi insufficienti.");
+                    exit();
+                }
             }
         } else {
-            // User not found in DB with the session email
+            // User not found in DB with the session email or query error
             session_destroy();
-            header("Location: login.php?error=Sessione invalida o utente non trovato nel database corretto.");
+            // You might want to log mysqli_error($conn) here for debugging if $result_user is false
+            header("Location: login.php?error=Sessione invalida o utente non trovato.");
             exit();
         }
-        mysqli_stmt_close($stmt_user);
+        // mysqli_stmt_close($stmt_user); // Not needed anymore
     } else {
         // Not logged in, redirect to login
         header("Location: login.php?error=Accesso negato. Devi effettuare il login.");

@@ -18,3 +18,4 @@ function connetti($db_name_param){ // Parameter will now be used
     return $conn;
 }
 ?>
+

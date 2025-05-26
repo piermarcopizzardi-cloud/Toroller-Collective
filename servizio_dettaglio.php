@@ -19,19 +19,18 @@ $servizio = null;
 $conn = connetti("toroller_semplificato");
 
 if ($conn) {
-    $stmt = mysqli_prepare($conn, "SELECT id, nome, categoria, descrizione FROM servizi WHERE id = ?");
-    mysqli_stmt_bind_param($stmt, "i", $_GET['id']);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    
+    $id = intval($_GET['id']); // Assicurati che l'ID sia un intero
+    $query = "SELECT id, nome, categoria, descrizione FROM servizi WHERE id = $id";
+    $result = mysqli_query($conn, $query);
+
     if ($result && mysqli_num_rows($result) > 0) {
         $servizio = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
     } else {
         header('Location: shop.php');
         exit();
     }
     
-    mysqli_stmt_close($stmt);
     mysqli_close($conn);
 }
 ?>

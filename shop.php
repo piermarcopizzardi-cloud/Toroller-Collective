@@ -97,7 +97,7 @@ if ($conn) { // Ensure connection is available before querying
         <!-- Primo passo: Ricerca -->
         <div class="search-filter-section">
             <form method="GET" action="shop.php" id="searchForm">
-                <input type="text" name="search_term" placeholder="Cerca servizio per nome..." value="<?php echo isset($_GET['search_term']) ? htmlspecialchars($_GET['search_term']) : ''; ?>">
+                <input type="text" name="search_term" placeholder="Cerca servizio per nome..." value="<?php echo isset($_GET['search_term']) ? $_GET['search_term'] : ''; ?>">
                 <select name="category">
                     <option value="">Tutte le categorie</option>
                     <?php 
@@ -109,7 +109,7 @@ if ($conn) { // Ensure connection is available before querying
                         if ($category_result) {
                             while ($cat_row = mysqli_fetch_assoc($category_result)) {
                                 $selected = (isset($_GET['category']) && $_GET['category'] == $cat_row['categoria']) ? 'selected' : '';
-                                echo '<option value="' . htmlspecialchars($cat_row['categoria']) . '" ' . $selected . '>' . htmlspecialchars($cat_row['categoria']) . '</option>';
+                                echo '<option value="' . $cat_row['categoria'] . '" ' . $selected . '>' . $cat_row['categoria'] . '</option>';
                             }
                         }
                         mysqli_close($conn_filter);
@@ -126,53 +126,43 @@ if ($conn) { // Ensure connection is available before querying
             $conn_display = connetti("toroller_semplificato");
             if ($conn_display) {
                 $queryServiziDisplay = "SELECT id, nome, categoria, descrizione FROM servizi";
-                $conditions = [];
-                $params = [];
-                $types = '';
+                $whereClause = "";
 
                 if (!empty($_GET['search_term'])) {
-                    $conditions[] = "nome LIKE ?";
-                    $params[] = "%" . $_GET['search_term'] . "%";
-                    $types .= 's';
+                    $search_term = mysqli_real_escape_string($conn_display, $_GET['search_term']);
+                    $whereClause = "WHERE nome LIKE '%$search_term%'";
                 }
+
                 if (!empty($_GET['category'])) {
-                    $conditions[] = "categoria = ?";
-                    $params[] = $_GET['category'];
-                    $types .= 's';
-                }
-
-                if (count($conditions) > 0) {
-                    $queryServiziDisplay .= " WHERE " . implode(" AND ", $conditions);
-                }
-                $queryServiziDisplay .= " ORDER BY nome ASC";
-
-                $stmt_display = mysqli_prepare($conn_display, $queryServiziDisplay);
-                if ($stmt_display) {
-                    if (count($params) > 0) {
-                        mysqli_stmt_bind_param($stmt_display, $types, ...$params);
+                    $category = mysqli_real_escape_string($conn_display, $_GET['category']);
+                    if ($whereClause == "") {
+                        $whereClause = "WHERE categoria = '$category'";
+                    } else {
+                        $whereClause .= " AND categoria = '$category'";
                     }
-                    mysqli_stmt_execute($stmt_display);
-                    $resultServiziDisplay = mysqli_stmt_get_result($stmt_display);
+                }
 
-                    if ($resultServiziDisplay && mysqli_num_rows($resultServiziDisplay) > 0) {
-                        while ($servizio = mysqli_fetch_assoc($resultServiziDisplay)):
-                    ?>                        <div class="product-card">
+                $queryServiziDisplay .= " $whereClause ORDER BY nome ASC";
+
+                $resultServiziDisplay = mysqli_query($conn_display, $queryServiziDisplay);
+
+                if ($resultServiziDisplay && mysqli_num_rows($resultServiziDisplay) > 0) {
+                    while ($servizio = mysqli_fetch_assoc($resultServiziDisplay)):
+                ?>
+                        <div class="product-card">
                             <div class="product-info">
-                                <h3 class="product-name"><?php echo htmlspecialchars($servizio['nome']); ?></h3>
-                                <p class="product-category">Categoria: <?php echo htmlspecialchars($servizio['categoria']); ?></p>
+                                <h3 class="product-name"><?php echo $servizio['nome']; ?></h3>
+                                <p class="product-category">Categoria: <?php echo $servizio['categoria']; ?></p>
                                 <a href="servizio_dettaglio.php?id=<?php echo $servizio['id']; ?>" class="view-details-btn">
                                     Vedi Dettagli
                                 </a>
                             </div>
                         </div>
-                    <?php 
-                        endwhile;
-                    } else {
-                        echo "<p>Nessun servizio trovato.</p>";
-                    }
-                    mysqli_stmt_close($stmt_display);
+                <?php
+                    endwhile;
+                    mysqli_free_result($resultServiziDisplay);
                 } else {
-                    echo "<p>Errore nella preparazione della query: " . mysqli_error($conn_display) . "</p>";
+                    echo "<p>Nessun servizio trovato.</p>";
                 }
                 mysqli_close($conn_display);
             } else {

@@ -1,0 +1,231 @@
+=== TOROLLER COLLECTIVE - DOCUMENTAZIONE DEL PROGETTO ===
+
+1. PANORAMICA DEL PROGETTO
+--------------------------
+TorollerCollective è una piattaforma web dedicata alla community di appassionati di biciclette, che offre servizi personalizzati e prodotti nel settore del ciclismo urbano. Il progetto si concentra sulla creazione di una community educativa per la mobilità sostenibile, con particolare attenzione al programma "Bike To School".
+
+2. STRUTTURA DEL PROGETTO
+-------------------------
+2.1 Organizzazione dei File
+    • /components/: Componenti riutilizzabili (header.php, footer.php)
+    • /style/: File CSS per lo styling
+    • /assets/: Immagini e risorse multimediali
+    • File PHP principali nella root directory
+
+2.2 Componenti Principali
+    a) Header (components/header.php)
+       - Navigazione principale
+       - Gestione dello stato di login
+       - Menu utente personalizzato
+    
+    b) Footer (components/footer.php)
+       - Links utili
+       - Informazioni di contatto
+       - Copyright e informazioni legali
+
+3. FUNZIONALITÀ PRINCIPALI
+--------------------------
+3.1 Sistema di Autenticazione
+    • Registrazione utente (registrazione.php)
+    • Login utente (login.php)
+    • Gestione sessioni
+    • Logout sicuro
+
+3.2 Gestione Profilo Utente (profile.php)
+    • Visualizzazione dati personali
+    • Modifica informazioni profilo
+    • Cambio password sicuro
+    • Validazione dati
+
+3.3 Area Amministrativa (admin.php)
+    • Accesso riservato agli amministratori
+    • Gestione utenti
+    • Gestione servizi e prodotti
+
+    Dettaglio delle Funzionalità (admin.php):
+    
+    a) Sistema di Autenticazione Amministratore
+       - Verifica della sessione utente ($_SESSION['email'] e $_SESSION['password'])
+       - Controllo del flag amministratore nel database
+       - Redirect automatico per utenti non autorizzati
+       - Gestione sicura del logout
+    
+    b) Gestione degli Utenti
+       - Visualizzazione lista completa utenti registrati
+       - Funzionalità di eliminazione utente
+       - Protezione contro l'auto-eliminazione dell'admin
+       - Gestione degli errori e feedback
+    
+    c) Gestione del Profilo Amministratore
+       - Aggiornamento dati personali (nome, cognome)
+       - Sistema di cambio password con:
+         * Verifica password attuale
+         * Validazione nuova password (minimo 8 caratteri)
+         * Conferma password
+         * Hashing sicuro (PASSWORD_DEFAULT)
+    
+    d) Sicurezza e Protezione
+       - Prepared statements per prevenire SQL Injection
+       - Escape dei dati input (mysqli_real_escape_string)
+       - Validazione lato server di tutti i dati
+       - Gestione delle sessioni sicura
+    
+    e) Sistema di Feedback
+       - Messaggi di successo per operazioni completate
+       - Messaggi di errore dettagliati
+       - Gestione degli stati tramite GET parameters
+       - Feedback immediato per tutte le azioni
+
+3.4 Shop e Servizi (shop.php)
+    • Catalogo prodotti/servizi
+    • Visualizzazione dettagli (servizio_dettaglio.php)
+    • Interfaccia user-friendly
+
+4. TECNOLOGIE UTILIZZATE
+------------------------
+• Backend: PHP 
+• Database: MySQL
+• Frontend: HTML5, CSS3, JavaScript
+• Framework CSS: Custom styling
+• Font: Inter (Google Fonts)
+
+5. SICUREZZA E BEST PRACTICES
+-----------------------------
+5.1 Misure di Sicurezza
+    • Password hashing (PASSWORD_DEFAULT)
+    • Protezione contro SQL Injection
+    • Validazione input utente
+    • Gestione sicura delle sessioni
+
+5.2 Best Practices Implementate
+    • Separazione della logica (MVC-like structure)
+    • Riutilizzo dei componenti
+    • Design responsive
+    • Gestione degli errori strutturata
+
+6. DATABASE STRUCTURE
+--------------------
+Database Name: toroller_semplificato
+
+Tabelle Principali:
+• utente
+  - email (PK)
+  - password (hashed)
+  - nome
+  - cognome
+  - amministratore (boolean)
+
+7. FLUSSI UTENTE
+----------------
+7.1 Utente Non Autenticato
+    • Visualizzazione homepage
+    • Registrazione
+    • Login
+
+7.2 Utente Autenticato
+    • Gestione profilo
+    • Accesso ai servizi
+    • Visualizzazione catalogo
+    • Modifica dati personali
+
+7.3 Amministratore
+    • Tutte le funzionalità utente
+    • Accesso pannello admin
+    • Gestione contenuti
+
+8. DESIGN E USER INTERFACE
+-------------------------
+8.1 Principi di Design
+    • Layout responsive
+    • Navigazione intuitiva
+    • Consistenza visiva
+    • Accessibilità
+
+8.2 Elementi UI Chiave
+    • Header con navigazione principale
+    • Footer informativo
+    • Form con validazione
+    • Messaggi di feedback
+    • Interfaccia amministrativa
+
+9. PUNTI DI FORZA DEL PROGETTO
+------------------------------
+• Architettura modulare e scalabile
+• Sistema di autenticazione robusto
+• Interfaccia utente intuitiva
+• Gestione efficiente delle sessioni
+• Separazione chiara tra logica e presentazione
+• Implementazione di best practices di sicurezza
+
+10. POSSIBILI SVILUPPI FUTURI
+-----------------------------
+• Implementazione sistema di prenotazione
+• Integrazione pagamenti online
+• Sistema di recensioni
+• Chat community
+• Newsletter
+• Sistema di notifiche
+• Area blog/news
+
+11. FLUSSO DI CONTROLLO AREA AMMINISTRATIVA
+----------------------------------------
+11.1 Inizializzazione e Controllo Accesso
+    • Avvio sessione (session_start())
+    • Verifica credenziali amministratore
+    • Connessione al database
+    • Controllo permessi amministrativi
+
+11.2 Flusso Operazioni Principali
+    a) Gestione Utenti
+       1. Lettura database
+          - Prepared statement per query sicure
+          - Fetch dati utenti
+          - Formattazione per visualizzazione
+       
+       2. Operazioni su Utenti
+          - Eliminazione utente
+          - Validazione operazione
+          - Aggiornamento database
+          - Gestione feedback
+       
+       3. Gestione Errori
+          - Catch delle eccezioni database
+          - Logging errori
+          - Feedback utente
+          - Rollback operazioni fallite
+
+    b) Gestione Profilo Admin
+       1. Aggiornamento Dati
+          - Validazione input
+          - Sanitizzazione dati
+          - Update database
+          - Refresh sessione
+       
+       2. Cambio Password
+          - Verifica password corrente
+          - Validazione nuova password
+          - Hashing password
+          - Update database
+
+11.3 Ciclo di Vita della Pagina
+    1. Inizializzazione
+       • Check sessione
+       • Connessione DB
+       • Caricamento dati utente
+    
+    2. Processamento Richieste
+       • Parsing POST/GET
+       • Validazione input
+       • Esecuzione operazioni
+    
+    3. Rendering
+       • Preparazione dati
+       • Gestione errori
+       • Output HTML
+    
+    4. Cleanup
+       • Chiusura connessioni DB
+       • Gestione sessione
+       • Logging
+
+Questa documentazione serve come guida completa per comprendere la struttura, le funzionalità e le potenzialità del progetto TorollerCollective. È organizzata in modo da facilitare sia la presentazione del progetto che la sua comprensione tecnica.

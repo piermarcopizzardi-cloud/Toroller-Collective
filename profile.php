@@ -134,41 +134,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Profilo Utente</title>
-    <link rel="stylesheet" href="style/profile.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Il Mio Profilo - TorollerCollective</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style/header.css">
-    <link rel="stylesheet" href="style/admin.css">
+    <link rel="stylesheet" href="style/profile.css">
 </head>
 <body>
-    <?php include("components/header.php"); ?>
-    <div class="admin-container">
-        <h2>Profilo Utente</h2>
+    <?php include 'components/header.php'?>
+
+    <div class="profile-container">
+        <h1 class="profile-title">Il Mio Profilo</h1>
+
         <?php if (!empty($error)): ?>
             <div class="error-message"><?php echo $error; ?></div>
         <?php endif; ?>
+
         <?php if (!empty($success)): ?>
             <div class="success-message"><?php echo $success; ?></div>
-        <?php endif; ?>        <?php if ($user): ?>
-        <form method="POST" class="admin-form">
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>" required>
-            <label for="cognome">Cognome:</label>
-            <input type="text" id="cognome" name="cognome" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>" required>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" disabled>
-            <button type="submit" name="update_profile">Aggiorna Profilo</button>
-        </form>
-        <h3>Cambia Password</h3>
-        <form method="POST" class="admin-form">
-            <label for="current_password">Password attuale:</label>
-            <input type="password" id="current_password" name="current_password" required>
-            <label for="new_password">Nuova password:</label>
-            <input type="password" id="new_password" name="new_password" required>
-            <label for="confirm_password">Conferma nuova password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-            <button type="submit" name="change_password">Cambia Password</button>
-        </form>
-        <a href="profile.php?logout=1" class="logout-link">Logout</a>
+        <?php endif; ?>
+
+        <?php if ($user): ?>
+        <div class="profile-section">
+            <h2>Informazioni Personali</h2>
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input type="text" name="nome" class="form-input" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Cognome</label>
+                    <input type="text" name="cognome" class="form-input" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" disabled>
+                </div>
+
+                <button type="submit" name="update_profile" class="submit-btn">Aggiorna Profilo</button>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <h2>Cambia Password</h2>
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label for="current_password" class="form-label">Password Attuale</label>
+                    <input type="password" id="current_password" name="current_password" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password" class="form-label">Nuova Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Conferma Nuova Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+                </div>
+
+                <button type="submit" name="change_password" class="submit-btn">Aggiorna Password</button>
+            </form>        </div>
+        <div class="profile-section">
+            <a href="profile.php?logout=1" class="logout-link">Logout</a>
+        </div>
         <?php endif; ?>
     </div>
 </body>

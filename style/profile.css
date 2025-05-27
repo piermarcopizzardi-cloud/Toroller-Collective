@@ -1,0 +1,115 @@
+/* Stili generali della pagina profilo */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-top: 30px;
+}
+
+.profile-title {
+    color: #04CD00;
+    font-size: 32px;
+    margin-bottom: 30px;
+    font-weight: 800;
+}
+
+/* Sezioni del profilo */
+.profile-section {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.profile-section h2 {
+    color: #374151;
+    font-size: 24px;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+/* Form e input */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #E5E7EB;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    border-color: #04CD00;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(4, 205, 0, 0.1);
+}
+
+.form-input:disabled {
+    background-color: #F9FAFB;
+    cursor: not-allowed;
+}
+
+/* Pulsanti */
+.submit-btn {
+    background-color: #04CD00;
+    color: #ffffff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+    background-color: #03b100;
+}
+
+.logout-link {
+    display: inline-block;
+    color: #6B7280;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.logout-link:hover {
+    color: #04CD00;
+}
+
+/* Messaggi di errore e successo */
+.error-message {
+    color: #ff0000;
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: #ffe6e6;
+    border-radius: 6px;
+}
+
+.success-message {
+    color: #04CD00;
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: #e6ffe6;
+    border-radius: 6px;
+}

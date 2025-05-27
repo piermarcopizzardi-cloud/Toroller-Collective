@@ -3,7 +3,7 @@ session_start();
 include("conn.php");
 
 // Controlla se l'utente è loggato
-$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']); // Email is still used for session login tracking as per original logic
+$isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']); 
 
 // Se l'utente ha cliccato su logout
 if (isset($_GET['logout'])) {
@@ -14,7 +14,7 @@ if (isset($_GET['logout'])) {
 
 $conn = null;
 try {
-    $conn = connetti("toroller_semplificato"); // Updated DB name
+    $conn = connetti("toroller_semplificato"); 
     if (!$conn) {
         throw new Exception("Errore di connessione al database");
     }
@@ -22,42 +22,25 @@ try {
     error_log("Errore database: " . $e->getMessage());
 }
 
-// Ottieni le informazioni dell'utente se è loggato
-$userEmail = '';
-$userNameDisplay = ''; // Changed variable name for clarity
-
-if ($isLoggedIn && $conn) {
-    $email_session = mysqli_real_escape_string($conn, $_SESSION['email']);
-    // Fetch username based on email from session for display purposes if needed
-    $query = "SELECT username, nome FROM utente WHERE email = '$email_session'"; 
-    $result = mysqli_query($conn, $query);
-    if ($result && mysqli_num_rows($result) > 0) {
-        $user = mysqli_fetch_assoc($result);
-        $userEmail = $email_session; // Keep email for session context
-        $userNameDisplay = $user['username']; // Display username
-    }
-    // Removed cart logic
-}
-
 if ($conn) {
     mysqli_close($conn);
 }
 
-// Initialize variables
+
 $name = "";
 $surname = "";
-$username_form = ""; // New variable for username from form
-$email_form = ""; // New variable for email from form
+$username_form = "";
+$email_form = ""; 
 $error = "";
 $success = "";
 
-// Process form submission
+// INVIO FORM
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
+    
     $name = trim($_POST["name"]);
     $surname = trim($_POST["surname"]);
-    $username_form = trim($_POST["username"]); // Get username
-    $email_form = trim($_POST["email"]); // Get email
+    $username_form = trim($_POST["username"]); 
+    $email_form = trim($_POST["email"]); 
     $password = $_POST["password"];
     $confirm_password = $_POST["confirm_password"];
     
@@ -71,23 +54,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($password !== $confirm_password) {
         $error = "Le password non corrispondono.";
     } else {
-        // Database connection
-        $conn = connetti("toroller_semplificato"); // Updated DB name
-        
-        // Check connection
+        $conn = connetti("toroller_semplificato"); 
         if (!$conn) {
             $error = "Errore di connessione al database";
         } else {
-            // Check if username already exists
+            // CONTROLLO USER GIA ESISTENTE
             $username_check = mysqli_real_escape_string($conn, $username_form);
             $query_check_username = "SELECT username FROM utente WHERE username = '$username_check'";
             $result_check_username = mysqli_query($conn, $query_check_username);
 
-            // Check if email already exists
+            // CONTROLLO EMAIL GIA ESISTENTE
             $email_check = mysqli_real_escape_string($conn, $email_form);
             $query_check_email = "SELECT email FROM utente WHERE email = '$email_check'";
             $result_check_email = mysqli_query($conn, $query_check_email);
             
+            // GESTIONE ERRORI COMPILAZIONE FORM
             if (!$result_check_username || !$result_check_email) {
                 $error = "Errore durante la verifica dell'utente: " . mysqli_error($conn);
             } else if (mysqli_num_rows($result_check_username) > 0) {
@@ -103,11 +84,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $username_db = mysqli_real_escape_string($conn, $username_form);
                 $email_db = mysqli_real_escape_string($conn, $email_form);
                 
-                // Insert new user (removed data_nascita)
+               //AGGIUNTA USER SE DATI SONO CORRETTI
                 $query_insert = "INSERT INTO utente (nome, cognome, username, email, password) VALUES ('$name_db', '$surname_db', '$username_db', '$email_db', '$hashed_password')";
                 
                 error_log("Query di registrazione: " . $query_insert);
                 
+                // GESTIONE PROBLEMI DI CONNESSIONE
                 if (!mysqli_query($conn, $query_insert)) {
                     $error = "Errore durante la registrazione: " . mysqli_error($conn);
                     error_log("Errore MySQL: " . mysqli_error($conn));
@@ -123,12 +105,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
-
-// Check for success message from registration
-if (isset($_SESSION['registration_success'])) {
-    // $success = "Registrazione completata con successo! Ora puoi effettuare il login."; // This message was originally intended for the registration page, but user is redirected.
-    unset($_SESSION['registration_success']); // Clear the message
-}
 ?>
 
 <!DOCTYPE html>
@@ -138,6 +114,7 @@ if (isset($_SESSION['registration_success'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrazione - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- unico modo per far caricare correttament eil front-end (js,css)-->
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
@@ -149,7 +126,7 @@ if (isset($_SESSION['registration_success'])) {
     
     <div class="main-content">
         <div class="registration-form-container">
-            <h1 class="main-heading">Unisciti a noi</h1> <!-- Simplified heading -->
+            <h1 class="main-heading">Unisciti a noi</h1> 
             
             <form class="registration-form" method="POST" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
                 <?php if (!empty($error)): ?>
@@ -160,20 +137,7 @@ if (isset($_SESSION['registration_success'])) {
                         </svg>
                         <?php echo $error; ?>
                     </div>
-                <?php endif; ?>
-                
-                <?php /* Success message is handled by redirecting to login now
-                <?php if (!empty($success)): ?>
-                    <div class="success-message">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="10" cy="10" r="10" fill="#E8F5E9"/>
-                            <path d="M6 10L9 13L14 7" stroke="#28A745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <?php echo $success; ?>
-                    </div>
-                <?php endif; ?>
-                */ ?>
-                
+                <?php endif; ?>          
                 <div class="form-row">
                     <div class="form-group">
                         <label for="name" class="form-label">Nome</label>

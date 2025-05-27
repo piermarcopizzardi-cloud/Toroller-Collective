@@ -4,7 +4,7 @@ include("conn.php");
 
 // Controlla se l'utente è loggato
 $isLoggedIn = isset($_SESSION['email']) && isset($_SESSION['password']);
-$user = null; // Initialize user variable
+$user = null; 
 
 // Se l'utente ha cliccato su logout
 if (isset($_GET['logout'])) {
@@ -13,41 +13,30 @@ if (isset($_GET['logout'])) {
     exit();
 }
 
-$conn = null;
-$error = ""; // Initialize error message
-$success = ""; // Initialize success message
-
-if (isset($_GET['success_msg'])) {
-    $success = ($_GET['success_msg']);
-}
-
 try {
-    $conn = connetti("toroller_semplificato"); // Corrected DB name
+    $conn = connetti("toroller_semplificato"); 
     if (!$conn) {
         throw new Exception("Errore di connessione al database");
-    }    // Fetch user data if logged in
+    }    // CARICAMENTO DATI UTENTE LOGGATO
     if ($isLoggedIn) {
         $admin_email = mysqli_real_escape_string($conn, $_SESSION['email']);
         $query_user = "SELECT * FROM utente WHERE email = '$admin_email'";
         $result_user = mysqli_query($conn, $query_user);
         if ($row_user = mysqli_fetch_assoc($result_user)) {
             $user = $row_user;
-            // Verifica se l'utente è effettivamente un amministratore
+            // controllo admin
             if (!isset($user['amministratore']) || $user['amministratore'] != 1) {
                 // Non è un admin, reindirizza o mostra errore
-                session_destroy(); // Opzionale: utile per forzare un nuovo login
+                session_destroy(); 
                 header("Location: login.php?error=Accesso negato. Permessi insufficienti.");
                 exit();
             }
         } else {
-            // User not found in DB with the session email
             session_destroy();
             header("Location: login.php?error=Sessione invalida o utente non trovato nel database corretto.");
             exit();
         }
-        mysqli_free_result($result_user);
     } else {
-        // Not logged in, redirect to login
         header("Location: login.php?error=Accesso negato. Devi effettuare il login.");
         exit();
     }
@@ -57,12 +46,14 @@ try {
     $error = "Errore di connessione al database.";
 }
 
-// Gestione Eliminazione Utente semplificata
+// ELIMINA UTENTI
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user']) && $conn) {
     $email = mysqli_real_escape_string($conn, $_POST['user_email']);
+    // controllo per impedire eliminazione admin
     if ($email === $_SESSION['email']) {
         $error = "Non puoi eliminare il tuo account da questa interfaccia.";
     } else {
+        // elimina email
         mysqli_query($conn, "DELETE FROM utente WHERE email='$email'");
         if (mysqli_affected_rows($conn) > 0) {
             $success = "Utente eliminato con successo!";
@@ -72,14 +63,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user']) && $con
     }
 }
 
-// Gestione del profilo e cambio password semplificata
+// AGGIORNA DATI PROFILO
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $user && $conn) {
     if (isset($_POST['update_profile'])) {
         $nome = mysqli_real_escape_string($conn, $_POST['nome']);
         $cognome = mysqli_real_escape_string($conn, $_POST['cognome']);
         mysqli_query($conn, "UPDATE utente SET nome='$nome', cognome='$cognome' WHERE email='{$user['email']}'");
         $success = "Profilo aggiornato con successo!";
-    } elseif (isset($_POST['change_password'])) {
+    } // CAMBIO PASSWORD
+    elseif (isset($_POST['change_password'])) {
         $current = $_POST['current_password'];
         $new    = $_POST['new_password'];
         $confirm= $_POST['confirm_password'];
@@ -90,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $user && $conn) {
         } elseif (strlen($new) < 8) {
             $error = "La nuova password deve contenere almeno 8 caratteri.";
         } else {
+            // HASHING PWS + AGGIORNAMENTO DATABASE_PWS
             $hash = password_hash($new, PASSWORD_DEFAULT);
             mysqli_query($conn, "UPDATE utente SET password='$hash' WHERE email='{$user['email']}'");
             $_SESSION['password'] = $hash;
@@ -98,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $user && $conn) {
     }
 }
 
-// Handle Add Service semplificato
+// AGGIUNTA SERVIZIO
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service']) && $conn) {
     $nome_servizio = mysqli_real_escape_string($conn, $_POST['nome_servizio']);
     $descrizione_servizio = mysqli_real_escape_string($conn, $_POST['descrizione_servizio']);
@@ -115,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service']) && $con
     }
 }
 
-// Handle Delete Service semplificato
+// ELIMINA SERVIZIO
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $conn) {
     $id = intval($_POST['service_id']);
     if ($id <= 0) {
@@ -151,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
     <div class="profile-container">
         <h1 class="profile-title">Pannello di Amministrazione</h1>
 
-        <div id="messagesGlobal"></div> <!-- Per messaggi globali di successo/errore -->
+        <div id="messagesGlobal"></div> 
 
         <?php if (!empty($error)): ?>
             <div class="error-message"><?php echo $error; ?></div>
@@ -165,7 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
             <div class="admin-tab" data-tab="users">Gestione Utenti</div>
         </div>
 
-        <!-- Profile Section -->
+        <!-- FORM MODIFICA PROFILO-->
         <div class="admin-section active" id="profileSection">
             <div class="profile-section">
                 <h2>Informazioni Personali</h2>
@@ -188,6 +181,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                 </form>
             </div>
 
+        <!--FORM CAMBIO PWS-->
             <div class="profile-section">
                 <h2>Cambia Password</h2>
                 <form method="POST" action="">
@@ -209,14 +203,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                     <button type="submit" name="change_password" class="submit-btn">Cambia Password</button>
                 </form>
             </div>
-        </div>        <!-- Services Section -->
+        </div>
+
+
         <div class="admin-section" id="servicesSection">
             <h2>Gestione Servizi</h2>
-
-            <!-- Add Service Form -->
+            <!--   FORM AGGIUNGI SERVIZI -->
             <div class="form-section">
                 <h3>Aggiungi Nuovo Servizio</h3>
-                <div id="messagesService"></div> <!-- Specific messages for service operations -->
+                <div id="messagesService"></div> 
                 <form method="POST" action="" class="needs-validation" novalidate>
                     <div class="form-group">
                         <label class="form-label" for="nome_servizio">Nome Servizio</label>
@@ -242,10 +237,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                 </form>
             </div>
 
-            <!-- Services Table -->
+            
             <div class="table-section">
                 <h3>Elenco Servizi</h3>
-                <table id="servicesTable" class="admin-table"> <!-- Changed ID to servicesTable -->                    <thead>
+                <table id="servicesTable" class="admin-table"> 
+                    <thead>
                         <tr>
                             <th>Nome</th>
                             <th>Categoria</th>
@@ -255,7 +251,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                     </thead>
                     <tbody>
                         <?php
-                        if ($conn) { // Check if $conn is valid
+                        if ($conn) { 
                             $services_query = "SELECT * FROM servizi ORDER BY id DESC";
                             $services_result = mysqli_query($conn, $services_query);
                             if ($services_result && mysqli_num_rows($services_result) > 0) {
@@ -265,33 +261,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                                     echo "<td>" . ($service['categoria']) . "</td>";
                                     echo "<td>" . ($service['descrizione']) . "</td>";
                                     echo "<td>";
-                                    // Delete Service Form
+                                    // BOTTONE PER ELIMINAZIONE SERVIZIO
                                     echo "<form method='POST' action='' style='display:inline-block;'>";
                                     echo "<input type='hidden' name='service_id' value='" . $service['id'] . "'>";
                                     echo "<button type='submit' name='delete_service' class='delete-btn' onclick='return confirm(\"Sei sicuro di voler eliminare questo servizio?\")'>Elimina</button>";
                                     echo "</form>";
-                                    // Placeholder for Edit button
-                                    // echo "<button class='edit-btn' onclick='editService(" . $service['id'] . ")'>Modifica</button>";
                                     echo "</td>";
                                     echo "</tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='4'>Nessun servizio trovato.</td></tr>";
                             }
-                            // mysqli_close($conn) should not be here if $conn is used later in the page or by other sections.
-                            // It's better to close it at the very end of the script if it's a global connection for the page.
-                            // However, the user list and product list were closing their own connections.
-                            // For consistency and to ensure $conn is available for all operations on this page,
-                            // we should rely on the main $conn established at the top.
+                          
                         } else {
                             echo "<tr><td colspan='4'>Errore di connessione al database.</td></tr>";
                         }
                         ?>
                     </tbody>
                 </table>
-            </div>        </div>
+            </div>        
+        </div>
 
-        <!-- Users Section -->
+        <!-- SEZIONE UTENTI -->
         <div class="admin-section" id="usersSection">
             <h2>Gestione Utenti</h2>
             <div class="table-section">
@@ -309,16 +300,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                     <tbody>
                         <?php
                         if ($conn) {
+                            // caricamento in ordine alfabetico degli user
                             $users_query = "SELECT * FROM utente ORDER BY nome ASC";
                             $users_result = mysqli_query($conn, $users_query);
                             if ($users_result && mysqli_num_rows($users_result) > 0) {
+                                
                                 while ($row = mysqli_fetch_assoc($users_result)) {
+                                    // caricamento dei singoli utenti
                                     echo "<tr>";
                                     echo "<td>" . ($row['nome']) . "</td>";
                                     echo "<td>" . ($row['cognome']) . "</td>";
                                     echo "<td>" . ($row['email']) . "</td>";
                                     echo "<td>" . ($row['amministratore'] ? 'Sì' : 'No') . "</td>";
                                     echo "<td>";
+                                    // BOTTONE - ELIMINA UTENTE
                                     if ($row['email'] !== $_SESSION['email']) {
                                         echo "<form method='POST' action='' style='display:inline-block;'>";
                                         echo "<input type='hidden' name='user_email' value='" . ($row['email']) . "'>";

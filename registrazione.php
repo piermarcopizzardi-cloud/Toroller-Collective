@@ -140,9 +140,9 @@ if (isset($_SESSION['registration_success'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
-    <link href="<?php echo $basePath; ?>/style/registrazione.css" rel="stylesheet">
-    <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
-    <!-- <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet"> Removed cart.css -->
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/registrazione.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/footer.css">
 </head>
 <body>
     <?php include 'components/header.php'?>
@@ -216,6 +216,7 @@ if (isset($_SESSION['registration_success'])) {
     </div>
     </div>
     
-    <script src="<?php echo $basePath; ?>/components/header.js"></script>
+    <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
+    <?php include 'components/footer.php'; ?>
 </body>
 </html>

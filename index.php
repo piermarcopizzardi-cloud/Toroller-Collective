@@ -54,8 +54,8 @@ if ($conn) {
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
-    <!-- <link rel="stylesheet" href="<?php echo $basePath; ?>/style/cart.css"> Removed cart.css -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/index.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/footer.css">
 </head>
 <body>
 <?php include 'components/header.php'?>
@@ -111,5 +111,6 @@ if ($conn) {
         </div>    </div>
     
     <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
+    <?php include 'components/footer.php'; ?>
 </body>
 </html>

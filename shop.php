@@ -81,9 +81,9 @@ if ($conn) { // Ensure connection is available before querying
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
-    <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
-    <!-- <link href="<?php echo $basePath; ?>/style/cart.css" rel="stylesheet"> Removed cart.css -->
-    <link href="<?php echo $basePath; ?>/style/shop.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/shop.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/footer.css">
 </head>
 <body>
     <?php include 'components/header.php'?>
@@ -172,15 +172,6 @@ if ($conn) { // Ensure connection is available before querying
     </div>
 
     <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
-    <script>
-        // Mostra/nascondi il pulsante "Mostra Dettagli" in base alle selezioni
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const showDetailsBtn = document.getElementById('showDetailsBtn');
-                const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
-                showDetailsBtn.style.display = checkedBoxes.length > 0 ? 'block' : 'none';
-            });
-        });
-    </script>
+    <?php include 'components/footer.php'; ?>
 </body>
 </html>

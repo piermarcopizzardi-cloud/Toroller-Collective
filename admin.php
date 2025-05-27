@@ -144,8 +144,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
     <title>Il Mio Profilo - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
-    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
+    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/admin.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/footer.css">
 </head>
 <body class="admin-page">
     <?php include 'components/header.php'?>
@@ -402,6 +404,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
         }
     });
     </script>
+    <?php include 'components/footer.php'; ?>
 </body>
 </html>
 

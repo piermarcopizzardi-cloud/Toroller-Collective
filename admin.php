@@ -18,7 +18,7 @@ $error = ""; // Initialize error message
 $success = ""; // Initialize success message
 
 if (isset($_GET['success_msg'])) {
-    $success = htmlspecialchars($_GET['success_msg']);
+    $success = ($_GET['success_msg']);
 }
 
 try {
@@ -171,16 +171,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                 <form method="POST" action="">
                     <div class="form-group">
                         <label class="form-label">Nome</label>
-                        <input type="text" name="nome" class="form-input" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>" required>
+                        <input type="text" name="nome" class="form-input" value="<?php echo isset($user['nome']) ? ($user['nome']) : ''; ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Cognome</label>
-                        <input type="text" name="cognome" class="form-input" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>" required>
+                        <input type="text" name="cognome" class="form-input" value="<?php echo isset($user['cognome']) ? ($user['cognome']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" class="form-input" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" disabled>
+                        <input type="email" class="form-input" value="<?php echo isset($user['email']) ? ($user['email']) : ''; ?>" disabled>
                     </div>
 
                     <button type="submit" name="update_profile" class="submit-btn">Aggiorna Profilo</button>
@@ -260,9 +260,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                             if ($services_result && mysqli_num_rows($services_result) > 0) {
                                 while ($service = mysqli_fetch_assoc($services_result)) {
                                     echo "<tr>";
-                                    echo "<td>" . htmlspecialchars($service['nome']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($service['categoria']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($service['descrizione']) . "</td>";
+                                    echo "<td>" . ($service['nome']) . "</td>";
+                                    echo "<td>" . ($service['categoria']) . "</td>";
+                                    echo "<td>" . ($service['descrizione']) . "</td>";
                                     echo "<td>";
                                     // Delete Service Form
                                     echo "<form method='POST' action='' style='display:inline-block;'>";
@@ -313,14 +313,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
                             if ($users_result && mysqli_num_rows($users_result) > 0) {
                                 while ($row = mysqli_fetch_assoc($users_result)) {
                                     echo "<tr>";
-                                    echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['cognome']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                    echo "<td>" . ($row['nome']) . "</td>";
+                                    echo "<td>" . ($row['cognome']) . "</td>";
+                                    echo "<td>" . ($row['email']) . "</td>";
                                     echo "<td>" . ($row['amministratore'] ? 'Sì' : 'No') . "</td>";
                                     echo "<td>";
                                     if ($row['email'] !== $_SESSION['email']) {
                                         echo "<form method='POST' action='' style='display:inline-block;'>";
-                                        echo "<input type='hidden' name='user_email' value='" . htmlspecialchars($row['email']) . "'>";
+                                        echo "<input type='hidden' name='user_email' value='" . ($row['email']) . "'>";
                                         echo "<button type='submit' name='delete_user' class='delete-btn' onclick='return confirm(\"Sei sicuro di voler eliminare questo utente?\")'>Elimina</button>";
                                         echo "</form>";
                                     }

@@ -182,7 +182,7 @@ if (isset($_SESSION['registration_success'])) {
                 </div>
             <?php endif; ?>
 
-            <form class="login-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+            <form class="login-form" method="POST" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
                 <div class="form-group">
                     <label for="email" class="form-label">E-mail</label>
                     <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" required>

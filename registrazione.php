@@ -151,7 +151,7 @@ if (isset($_SESSION['registration_success'])) {
         <div class="registration-form-container">
             <h1 class="main-heading">Unisciti a noi</h1> <!-- Simplified heading -->
             
-            <form class="registration-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+            <form class="registration-form" method="POST" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
                 <?php if (!empty($error)): ?>
                     <div class="error-message">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -177,23 +177,23 @@ if (isset($_SESSION['registration_success'])) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="name" class="form-label">Nome</label>
-                        <input type="text" id="name" name="name" placeholder="Il tuo nome" class="form-input" value="<?php echo htmlspecialchars($name); ?>" required>
+                        <input type="text" id="name" name="name" placeholder="Il tuo nome" class="form-input" value="<?php echo $name; ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="surname" class="form-label">Cognome</label>
-                        <input type="text" id="surname" name="surname" placeholder="Il tuo cognome" class="form-input" value="<?php echo htmlspecialchars($surname); ?>" required>
+                        <input type="text" id="surname" name="surname" placeholder="Il tuo cognome" class="form-input" value="<?php echo $surname; ?>" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                      <div class="form-group">
                         <label for="username" class="form-label">Username</label>
-                        <input type="text" id="username" name="username" placeholder="Scegli un username" class="form-input" value="<?php echo htmlspecialchars($username_form); ?>" required>
+                        <input type="text" id="username" name="username" placeholder="Scegli un username" class="form-input" value="<?php echo $username_form; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="email" class="form-label">E-mail</label>
-                        <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo htmlspecialchars($email_form); ?>" required>
+                        <input type="email" id="email" name="email" placeholder="example@email.com" class="form-input" value="<?php echo $email_form; ?>" required>
                     </div>
                 </div>
                 

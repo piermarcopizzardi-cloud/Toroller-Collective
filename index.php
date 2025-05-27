@@ -51,8 +51,8 @@ if ($conn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TorollerCollective - Home</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
-    <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
+    <!-- <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?> -->
+    <!-- <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>"> -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/index.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/footer.css">

@@ -39,7 +39,8 @@ if ($conn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($servizio['nome']); ?> - TorollerCollective</title>
+    <title><?php echo 
+    ($servizio['nome']); ?> - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <link href="<?php echo $basePath; ?>/style/header.css" rel="stylesheet">
@@ -53,10 +54,10 @@ if ($conn) {
             <a href="shop.php" class="back-button">&larr; Torna ai servizi</a>
             
             <div class="service-detail-card">
-                <h1><?php echo htmlspecialchars($servizio['nome']); ?></h1>
-                <p class="category">Categoria: <?php echo htmlspecialchars($servizio['categoria']); ?></p>
+                <h1><?php echo ($servizio['nome']); ?></h1>
+                <p class="category">Categoria: <?php echo ($servizio['categoria']); ?></p>
                 <div class="description">
-                    <?php echo nl2br(htmlspecialchars($servizio['descrizione'])); ?>
+                    <?php echo nl2br(($servizio['descrizione'])); ?>
                 </div>
             </div>
         </div>

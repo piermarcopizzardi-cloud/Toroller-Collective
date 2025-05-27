@@ -1,0 +1,80 @@
+
+Spiegazione dettagliata delle pagine del progetto PHP TorollerCollective
+
+---
+
+1. index.php
+- Funzione principale: Homepage pubblica del sito.
+- Mostra i servizi disponibili dal DB con mysqli_fetch_assoc e foreach.
+- Se l’utente è loggato (verifica con $_SESSION['email']), mostra link extra.
+
+2. login.php
+- Funzione principale: Login utente.
+- Riceve POST, verifica credenziali da DB, imposta $_SESSION.
+- Se è admin (campo amministratore=1), reindirizza ad admin.php.
+
+3. registrazione.php
+- Riceve POST da form.
+- Verifica che l’email non sia già registrata.
+- Inserisce i dati nella tabella utente.
+
+4. profile.php
+- Mostra dati utente loggato.
+- Permette modifica nome, cognome e password (conferma password richiesta).
+- UPDATE su tabella utente.
+
+5. admin.php
+- Console admin: solo se $_SESSION['amministratore'] == 1.
+- Modifica profilo e password.
+- Gestione servizi (aggiunta/rimozione).
+- Visualizzazione ed eliminazione utenti.
+- Previene auto-eliminazione:
+    if ($email_da_eliminare != $_SESSION['email']) {
+        mysqli_query($conn, "DELETE FROM utente WHERE email = '$email_da_eliminare'");
+    }
+
+6. servizio_dettaglio.php
+- Visualizza info dettagliata di un servizio (via $_GET['id']).
+- SELECT su tabella servizi.
+
+7. shop.php
+- Lista servizi disponibili.
+- Aggiunta futura al carrello.
+- Se non loggato → invito a login.
+
+8. conn.php
+- Definisce connetti($dbname): connessione a mysqli.
+- Usato in tutte le altre pagine con include o require.
+
+---
+
+Flusso sessioni:
+- session_start() in tutte le pagine.
+- login.php imposta $_SESSION['email'], ['password'], ['amministratore'].
+- admin.php e profile.php verificano sessione.
+- logout via ?logout → session_destroy() + redirect.
+
+---
+
+Query principali:
+- SELECT * FROM servizi → index.php, shop.php
+- SELECT * FROM servizi WHERE id=X → servizio_dettaglio.php
+- SELECT * FROM utente WHERE email=x AND password=y → login.php
+- INSERT INTO utente(...) → registrazione.php
+- INSERT INTO servizi(...) → admin.php
+- UPDATE utente SET ... → profile.php, admin.php
+- DELETE FROM servizi WHERE id=... → admin.php
+- DELETE FROM utente WHERE email=... → admin.php
+
+---
+
+Metodi condivisi:
+- connetti(): chiamato in ogni pagina per connettere al DB.
+- $_SESSION: trasporta info utente/admin tra pagine.
+- $_POST/$_GET: gestiscono input da form e link.
+- mysqli_query: esegue tutte le query SQL.
+- mysqli_fetch_assoc + foreach: scansionano i risultati.
+
+---
+
+Questo file riepiloga l’intero funzionamento del progetto lato PHP.

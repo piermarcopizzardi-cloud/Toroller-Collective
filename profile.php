@@ -132,13 +132,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 <!DOCTYPE html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Il Mio Profilo - TorollerCollective</title>
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Mio Profilo - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/profile.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>/style/footer.css">
+    <link rel="stylesheet" href="style/header.css">
+    <link rel="stylesheet" href="style/profile.css">
+    <link rel="stylesheet" href="style/footer.css">
 </head>
 <body>
     <?php include 'components/header.php'?>
@@ -202,7 +202,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <?php endif; ?>
     </div>
-    <script src="<?php echo $basePath; ?>/components/header.js?v=<?php echo time(); ?>"></script>
+    <script src="components/header.js"></script>
     <?php include 'components/footer.php'; ?>
 </body>
 </html>

@@ -25,16 +25,11 @@ try {
     $conn = connetti("toroller_semplificato"); // Corrected DB name
     if (!$conn) {
         throw new Exception("Errore di connessione al database");
-    }
-
-    // Fetch user data if logged in
+    }    // Fetch user data if logged in
     if ($isLoggedIn) {
-        $admin_email = $_SESSION['email'];
-        $query_user = "SELECT * FROM utente WHERE email = ?";
-        $stmt_user = mysqli_prepare($conn, $query_user);
-        mysqli_stmt_bind_param($stmt_user, "s", $admin_email);
-        mysqli_stmt_execute($stmt_user);
-        $result_user = mysqli_stmt_get_result($stmt_user);
+        $admin_email = mysqli_real_escape_string($conn, $_SESSION['email']);
+        $query_user = "SELECT * FROM utente WHERE email = '$admin_email'";
+        $result_user = mysqli_query($conn, $query_user);
         if ($row_user = mysqli_fetch_assoc($result_user)) {
             $user = $row_user;
             // Verifica se l'utente è effettivamente un amministratore
@@ -50,7 +45,7 @@ try {
             header("Location: login.php?error=Sessione invalida o utente non trovato nel database corretto.");
             exit();
         }
-        mysqli_stmt_close($stmt_user);
+        mysqli_free_result($result_user);
     } else {
         // Not logged in, redirect to login
         header("Location: login.php?error=Accesso negato. Devi effettuare il login.");

@@ -228,4 +228,79 @@ Tabelle Principali:
        • Gestione sessione
        • Logging
 
-Questa documentazione serve come guida completa per comprendere la struttura, le funzionalità e le potenzialità del progetto TorollerCollective. È organizzata in modo da facilitare sia la presentazione del progetto che la sua comprensione tecnica.
+---
+
+# Presentazione del Progetto: Sito Toroller Collective
+
+## Panoramica
+Il sito Toroller Collective è progettato per offrire un'esperienza utente fluida nella gestione dei profili, nel login e nell'accesso alle funzionalità amministrative. Questo documento descrive l'approccio adottato per gestire i vari processi del sito.
+
+---
+
+## 1. **Gestione del Login**
+### Funzionalità:
+- **Autenticazione Sicura**: Le credenziali degli utenti vengono gestite in modo sicuro utilizzando la crittografia.
+- **Gestione degli Errori**: Messaggi di errore chiari vengono mostrati in caso di tentativi di login non validi.
+- **Gestione della Sessione**: Le sessioni degli utenti vengono mantenute per garantire un accesso sicuro alle pagine riservate.
+
+### Implementazione:
+- **Frontend**: 
+  - Un modulo di login pulito e responsivo, stilizzato con CSS.
+  - Campi di input con effetti di focus e stati disabilitati per migliorare l'esperienza utente.
+- **Backend**:
+  - Validazione delle credenziali degli utenti rispetto al database.
+  - Utilizzo di cookie di sessione per tracciare gli utenti autenticati.
+
+---
+
+## 2. **Gestione del Profilo**
+### Funzionalità:
+- **Sezioni del Profilo Modificabili**: Gli utenti possono aggiornare le proprie informazioni personali.
+- **Design Responsivo**: Le pagine del profilo sono ottimizzate sia per dispositivi desktop che mobili.
+
+### Implementazione:
+- **Frontend**:
+  - Sezioni del profilo stilizzate con un design moderno utilizzando CSS.
+  - Campi di input con effetti di focus e feedback di validazione.
+- **Backend**:
+  - API per recuperare e aggiornare i dati degli utenti nel database.
+
+---
+
+## 3. **Funzionalità della Pagina Amministrativa**
+### Funzionalità:
+- **Gestione Utenti**: Gli amministratori possono visualizzare, modificare ed eliminare account utente.
+- **Moderazione dei Contenuti**: Strumenti per gestire i contenuti del sito.
+- **Dashboard Analitica**: Statistiche sull'attività degli utenti e sulle prestazioni del sito.
+
+### Implementazione:
+- **Frontend**:
+  - Un'interfaccia dashboard con navigazione intuitiva.
+  - Tabelle e grafici per la visualizzazione dei dati.
+- **Backend**:
+  - Controllo degli accessi basato sui ruoli per limitare le funzionalità amministrative.
+  - API per la gestione dei dati degli utenti e dei contenuti.
+
+---
+
+## 4. **Stile e Design**
+### Approccio:
+- **Coerenza**: Un linguaggio di design unificato utilizzando il font 'Inter' e una palette di colori verde (#04CD00).
+- **Accessibilità**: Colori ad alto contrasto e stati di focus per una migliore usabilità.
+- **Responsività**: Media query CSS per garantire la compatibilità su diversi dispositivi.
+
+---
+
+## 5. **Messaggi di Errore e Successo**
+### Funzionalità:
+- **Messaggi di Errore**: Evidenziano problemi come input non validi o azioni fallite.
+- **Messaggi di Successo**: Forniscono feedback per operazioni completate con successo.
+
+### Implementazione:
+- Stilizzati con CSS utilizzando colori distinti per errori (rosso) e successi (verde).
+- Posizionati in modo prominente per una maggiore visibilità.
+
+---
+
+## Conclusione
+Il sito Toroller Collective adotta un approccio strutturato per gestire le interazioni degli utenti e le funzionalità amministrative. Combinando principi di design moderni con processi backend robusti, la piattaforma garantisce un'esperienza sicura e user-friendly.

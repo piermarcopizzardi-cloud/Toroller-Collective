@@ -22,23 +22,6 @@ try {
     error_log("Errore database: " . $e->getMessage());
 }
 
-// Ottieni le informazioni dell'utente se è loggato
-$userEmail = '';
-$userName = '';
-// Removed cart logic
-
-if ($isLoggedIn && $conn) {
-    $email_session = mysqli_real_escape_string($conn, $_SESSION['email']);
-    // Fetch username based on email from session for display purposes if needed
-    $query = "SELECT username, nome FROM utente WHERE email = '$email_session'"; 
-    $result = mysqli_query($conn, $query);
-    if ($result && mysqli_num_rows($result) > 0) {
-        $user = mysqli_fetch_assoc($result);
-        $userEmail = $email_session; // Keep email for session context
-        $userName = $user['username']; // Display username
-    }
-    // Removed cart logic
-}
 
 if ($conn) {
     mysqli_close($conn);
@@ -55,7 +38,7 @@ $error = "";
 
 // Procedi solo se il form è stato inviato
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $conn = connetti("toroller_semplificato"); // Corrected DB name
+    $conn = connetti("toroller_semplificato"); 
     
     if (!$conn) {
         $error = "Errore di connessione al database";
@@ -67,24 +50,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Per favore, compila tutti i campi.";
         } else {
             // Verifica se l'utente esiste
-            $sql = "SELECT * FROM utente WHERE email = '$email_form'";
-            $ris = mysqli_query($conn, $sql);
+            $query = "SELECT * FROM utente WHERE email = '$email_form'";
+            $ris = mysqli_query($conn, $query);
             
             if (!$ris) {
                 $error = "Errore durante la verifica dell'utente: " . mysqli_error($conn);
             } else {
-                $num_rows = mysqli_num_rows($ris);
-                if ($num_rows <= 0) {
+                if (mysqli_num_rows($ris) <= 0) {
                     $error = "Utente non trovato. Registrati per continuare.";
                 } else {
                     // Verifica la password
                     $user = mysqli_fetch_assoc($ris);
+                    // password_verify - controlla che il corrispettivo hash sia corretto
                     if (password_verify($password_form, $user['password'])) {
-                        // Login successful
-                        $_SESSION['email'] = $user['email']; // Mantieni l'email se serve altrove
-                        $_SESSION['username'] = $user['username']; // Imposta l'username nella sessione
-                        $_SESSION['password'] = $user['password']; // Store hashed password (consider removing if not strictly needed for session checks)
-                        $_SESSION['is_admin'] = $user['amministratore'] == 1; // Salva se l'utente è admin
+                        // inizializzazione variabili di sessione
+                        $_SESSION['email'] = $user['email']; 
+                        $_SESSION['username'] = $user['username']; 
+                        $_SESSION['password'] = $user['password']; 
+                        $_SESSION['is_admin'] = $user['amministratore'] == 1; 
                         header("Location: index.php");
                         exit();
                     } else {
@@ -98,10 +81,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Check for success message from registration
+// se appena registrati -> allert di registrazione avvenuta con successo
 if (isset($_SESSION['registration_success'])) {
     $success = "Registrazione completata con successo! Effettua il login.";
-    unset($_SESSION['registration_success']); // Clear the message
+    unset($_SESSION['registration_success']); 
 }
 ?>
 
@@ -112,6 +95,7 @@ if (isset($_SESSION['registration_success'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- unico modo per far caricare correttament eil front-end (js,css)-->
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link href="<?php echo $basePath; ?>/style/login.css" rel="stylesheet">
@@ -121,7 +105,7 @@ if (isset($_SESSION['registration_success'])) {
 <body>
     <?php include 'components/header.php'?>
 
-    <!-- Removed old mobile menu section as it's handled by header.php -->
+  
     
     <div class="main-content">
         <div class="left-section">
@@ -168,6 +152,7 @@ if (isset($_SESSION['registration_success'])) {
                         <circle cx="10" cy="10" r="10" fill="#FFE5E5"/>
                         <path d="M10 5V11M10 13V15" stroke="#DC3545" stroke-width="2" stroke-linecap="round"/>
                     </svg>
+            <!--altrimenti-->
                     <?php echo $error; ?>
                 </div>
             <?php endif; ?>

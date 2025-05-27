@@ -138,6 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service']) && $
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Il Mio Profilo - TorollerCollective</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- unico modo per far caricare correttament eil front-end (js,css)-->
     <?php $basePath = dirname($_SERVER['PHP_SELF']); if ($basePath == '/') $basePath = ''; ?>
     <meta name="base-path" content="<?php echo rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>">
     <link rel="stylesheet" href="<?php echo $basePath; ?>/style/header.css">

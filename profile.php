@@ -113,3 +113,66 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $query_refetch_user_pass = "SELECT * FROM utente WHERE email = '$email'";
                             $result_refetch_user_pass = mysqli_query($conn, $query_refetch_user_pass);
                             $user = mysqli_fetch_assoc($result_refetch_user_pass); // Update
+                            mysqli_free_result($result_refetch_user_pass);
+                        }
+                    }
+                } else {
+                    $error = "Le nuove password non coincidono.";
+                }
+            } else {
+                $error = "La password attuale non è corretta.";
+            }
+        } else {
+            $error = "Impossibile cambiare la password. Utente non loggato o errore di connessione.";
+        }
+    }
+}
+
+// HTML output
+?>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo Utente</title>
+    <link rel="stylesheet" href="style/profile.css">
+    <link rel="stylesheet" href="style/header.css"<!-- Include solo admin.css per la pagina profilo -->
+</head>
+<!-- Rimuovi o commenta le altre CSS se vuoi solo admin.css -->
+<body>
+    <?php include("components/header.php"); ?>
+    <div class="admin-container">
+        <h2>Profilo Utente</h2>
+        <?php if (!empty($error)): ?>
+            <div class="error-message"><?php echo $error; ?></div>
+        <?php endif; ?>
+        <?php if (!empty($success)): ?>
+            <div class="success-message"><?php echo $success; ?></div>
+        <?php endif; ?>
+        <?php if ($user): ?>
+        <form method="POST" class="admin-form">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($user['nome']); ?>" required>
+            <label for="cognome">Cognome:</label>
+            <input type="text" id="cognome" name="cognome" value="<?php echo htmlspecialchars($user['cognome']); ?>" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" disabled>
+            <button type="submit" name="update_profile">Aggiorna Profilo</button>
+        </form>
+        <h3>Cambia Password</h3>
+        <form method="POST" class="admin-form">
+            <label for="current_password">Password attuale:</label>
+            <input type="password" id="current_password" name="current_password" required>
+            <label for="new_password">Nuova password:</label>
+            <input type="password" id="new_password" name="new_password" required>
+            <label for="confirm_password">Conferma nuova password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <button type="submit" name="change_password">Cambia Password</button>
+        </form>
+        <a href="profile.php?logout=1" class="logout-link">Logout</a>
+        <?php endif; ?>
+    </div>
+</body>
+</html>
+

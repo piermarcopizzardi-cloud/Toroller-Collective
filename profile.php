@@ -134,12 +134,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilo Utente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Profilo Utente</title>
     <link rel="stylesheet" href="style/profile.css">
-    <link rel="stylesheet" href="style/header.css"<!-- Include solo admin.css per la pagina profilo -->
+    <link rel="stylesheet" href="style/header.css">
+    <link rel="stylesheet" href="style/admin.css">
 </head>
-<!-- Rimuovi o commenta le altre CSS se vuoi solo admin.css -->
 <body>
     <?php include("components/header.php"); ?>
     <div class="admin-container">
@@ -149,15 +148,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
         <?php if (!empty($success)): ?>
             <div class="success-message"><?php echo $success; ?></div>
-        <?php endif; ?>
-        <?php if ($user): ?>
+        <?php endif; ?>        <?php if ($user): ?>
         <form method="POST" class="admin-form">
             <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($user['nome']); ?>" required>
+            <input type="text" id="nome" name="nome" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>" required>
             <label for="cognome">Cognome:</label>
-            <input type="text" id="cognome" name="cognome" value="<?php echo htmlspecialchars($user['cognome']); ?>" required>
+            <input type="text" id="cognome" name="cognome" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>" required>
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" disabled>
+            <input type="email" id="email" name="email" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" disabled>
             <button type="submit" name="update_profile">Aggiorna Profilo</button>
         </form>
         <h3>Cambia Password</h3>

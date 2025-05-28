@@ -12,10 +12,10 @@ if ($basePath == '/') $basePath = '';
 
 // Ottieni le informazioni dell'utente se è loggato
 $userEmail = '';
-$isAdmin = false; // Inizializza isAdmin
+$isAdmin = false; 
 if ($isLoggedIn && isset($_SESSION['email'])) {
     include_once(__DIR__ . "/../conn.php");
-    $conn = connetti('toroller_semplificato'); // Corrected database name
+    $conn = connetti('toroller_semplificato'); 
     
     if ($conn) {
         $email = mysqli_real_escape_string($conn, $_SESSION['email']);
@@ -26,7 +26,6 @@ if ($isLoggedIn && isset($_SESSION['email'])) {
             $userEmail = $user['email'];
             $isAdmin = $user['amministratore'] == 1;
         }
-        // Non chiudere la connessione qui se serve ancora
     }
 }
 ?>
@@ -44,9 +43,9 @@ if ($isLoggedIn && isset($_SESSION['email'])) {
         </div>
         
         <?php if ($isLoggedIn): ?>
-            <div class="user-menu">                <?php if ($isAdmin): // Usa la variabile $isAdmin correttamente inizializzata ?>
+                <?php if ($isAdmin): ?><!--is_admin = true-->
                     <a href="<?php echo $basePath; ?>/admin.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
-                <?php else: ?>
+                <?php else: ?> <!-- case is_admin = false -->
                     <a href="<?php echo $basePath; ?>/profile.php" class="user-email"><?php echo htmlspecialchars($userEmail); ?></a>
                 <?php endif; ?>
                 <a href="<?php echo $basePath; ?>/?logout=1" class="logout-btn">Logout</a>
